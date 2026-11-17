@@ -221,6 +221,10 @@ export default function CatPet() {
     };
     const onPointerDown = (event: PointerEvent) => {
       if (event.pointerType === "mouse" && event.button !== 0 || pointerId !== -1) return;
+      // When the cat stands over a real control, the control wins the click.
+      const covered = document.elementsFromPoint(event.clientX, event.clientY).find(node => !node.closest(".cp-stage"));
+      const control = covered?.closest("a,button,input,select,textarea,summary,[role='button']");
+      if (control instanceof HTMLElement) { control.click(); return; }
       event.preventDefault();
       pointerId = event.pointerId;
       pointerMoved = false;

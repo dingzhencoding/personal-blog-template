@@ -44,7 +44,7 @@ function enhanceTerminal(root: HTMLElement) {
   const canvas = root.querySelector<HTMLCanvasElement>(".rain-canvas");
   let frame = 0;
   let observer: ResizeObserver | undefined;
-  if (canvas) {
+  if (canvas && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     const ctx = canvas.getContext("2d");
     if (ctx) {
       let drops: number[] = [];
@@ -107,8 +107,24 @@ export default function ClientEnhancements({ starMarkup }: { starMarkup: string 
   useLayoutEffect(() => {
     const root = document.querySelector<HTMLElement>(".wasteland");
     if (!root) return;
-    const cleanup = [enhanceTerminal(root), enhanceCipher(root), enhanceGame(root), enhanceNav(root, starMarkup)];
-    return () => cleanup.forEach(fn => fn());
+    let cyberCleanup: Array<() => void> = [];
+    const stopCyber = () => { cyberCleanup.forEach(fn => fn()); cyberCleanup = []; };
+    const startCyber = () => {
+      if (cyberCleanup.length) return;
+      cyberCleanup = [enhanceTerminal(root), enhanceCipher(root), enhanceGame(root)];
+    };
+    const syncTheme = () => {
+      if (document.documentElement.dataset.docTheme === "cyber") startCyber();
+      else stopCyber();
+    };
+    window.addEventListener("clone:theme-change", syncTheme);
+    const disposeNav = enhanceNav(root, starMarkup);
+    syncTheme();
+    return () => {
+      window.removeEventListener("clone:theme-change", syncTheme);
+      stopCyber();
+      disposeNav();
+    };
   }, [starMarkup]);
   return null;
 }

@@ -1,7 +1,6 @@
 import { createBackgroundMusic, type MusicState } from "@/lib/background-music";
 import dipperStates from "./dipper-states.json";
 import zodiacStates from "./zodiac-states.json";
-import { mountCosmicGalaxy } from "./cosmic-galaxy";
 import { canPlayBackgroundVideo, homeBackgroundVideo, inlineVideoAttributes, manageBackgroundVideo } from "@/lib/background-video";
 
 const links: ReadonlyArray<readonly [string, string]> = [
@@ -36,6 +35,8 @@ const escapeSearchHtml = (value: string) => value.replace(/[&<>'"]/g, character 
   "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
 }[character] ?? character));
 
+let searchIndexCache: SearchItem[] | null = null;
+
 const stripMarkdown = (value: string) => value
   .replace(/```[\s\S]*?```/g, " ")
   .replace(/`([^`]+)`/g, "$1")
@@ -59,17 +60,25 @@ function paintGalaxy(container: HTMLElement) {
   const canvas = container.querySelector<HTMLCanvasElement>(".galaxy canvas");
   if (!canvas) return () => {};
   const clock = container.querySelector<HTMLElement>(".slh-bar-clock");
+  const uptime = container.querySelector<HTMLElement>(".slh-uptime-ico")?.parentElement ?? null;
+  const sessionStart = Date.now();
   const updateClock = () => {
+    if (document.hidden) return;
     if (clock) {
       clock.textContent = new Date().toLocaleTimeString("zh-CN", {
         hour12: false,
         timeZone: "Asia/Shanghai",
       });
     }
+    if (uptime?.lastChild) uptime.lastChild.textContent = new Date(Date.now() - sessionStart).toISOString().slice(11, 19);
   };
   updateClock();
   const clockInterval = window.setInterval(updateClock, 1000);
-  const disposeCosmic = mountCosmicGalaxy(container);
+  let disposeCosmic = () => {};
+  let cosmicCancelled = false;
+  void import("./cosmic-galaxy").then(module => {
+    if (!cosmicCancelled) disposeCosmic = module.mountCosmicGalaxy(container);
+  });
   const buttons=container.querySelectorAll<HTMLButtonElement>(".slh-btn");
   const scrollGalaxy=()=>container.querySelector(".slh-nav")?.scrollIntoView({behavior:"smooth"});
   const scrollGame=()=>container.querySelector(".slh-tech")?.scrollIntoView({behavior:"smooth"});
@@ -210,7 +219,7 @@ function paintGalaxy(container: HTMLElement) {
   const toggleZodiacSound=()=>{wheelMuted=!wheelMuted;zodiacSound?.classList.toggle("off",wheelMuted);if(zodiacSound){zodiacSound.title=wheelMuted?"开启轮盘音效":"关闭轮盘音效";const icon=zodiacSound.querySelector("span");if(icon)icon.textContent=wheelMuted?"🔇":"🔊";}if(!wheelMuted)playZodiacTone("triangle",784,.1,.06);};
   spin?.addEventListener("click",turn);
   zodiacSound?.addEventListener("click",toggleZodiacSound);
-  return ()=>{window.clearInterval(clockInterval);disposeCosmic();window.cancelAnimationFrame(wheelFrame);window.clearTimeout(pointerTimer);void zodiacAudioContext?.close();dipperSwap++;dipperAnimation?.cancel();buttons[0]?.removeEventListener("click",scrollGalaxy);buttons[1]?.removeEventListener("click",scrollGame);dipperListeners.forEach(fn=>fn());zodiacListeners.forEach(fn=>fn());spin?.removeEventListener("click",turn);zodiacSound?.removeEventListener("click",toggleZodiacSound);};
+  return ()=>{window.clearInterval(clockInterval);cosmicCancelled=true;disposeCosmic();window.cancelAnimationFrame(wheelFrame);window.clearTimeout(pointerTimer);void zodiacAudioContext?.close();dipperSwap++;dipperAnimation?.cancel();buttons[0]?.removeEventListener("click",scrollGalaxy);buttons[1]?.removeEventListener("click",scrollGame);dipperListeners.forEach(fn=>fn());zodiacListeners.forEach(fn=>fn());spin?.removeEventListener("click",turn);zodiacSound?.removeEventListener("click",toggleZodiacSound);};
 }
 
 export function enhanceNav(root: HTMLElement, starMarkup: string) {
@@ -328,6 +337,7 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
     }
     if (star) star.style.display = starry ? "" : "none";
     syncOrbitPlayback();
+    window.dispatchEvent(new Event("clone:theme-change"));
     closeThemePanel();
     window.scrollTo({top:0,behavior:"instant"});
   };
@@ -414,7 +424,7 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
         playTone("sawtooth",170,760,.22,.085);playTone("sine",980,260,.3,.075,.035);playTone("triangle",1280,620,.2,.04,.075);
         const url=new URL(anchor.href,location.href);
         if(url.origin===location.origin&&!anchor.target&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey){
-          event.preventDefault();saveMusicProgress();window.setTimeout(()=>{location.href=url.href;},150);
+          saveMusicProgress();
         }
       }else{
         playTone("sine",520,840,.11,.065);playTone("triangle",1040,690,.16,.035,.025);
@@ -506,13 +516,16 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
   const loadSearchEntries=async(layer:HTMLElement,update:()=>void)=>{
     const request=++searchRequest;
     try{
-      const response=await fetch("/search-index.json",{cache:"no-store"});
-      if(!response.ok)throw new Error("article search unavailable");
-      const payload=await response.json();
+      if(!searchIndexCache){
+        const response=await fetch("/search-index.json",{cache:"force-cache"});
+        if(!response.ok)throw new Error("article search unavailable");
+        const payload=await response.json();
+        searchIndexCache=(Array.isArray(payload?.entries)?payload.entries:[])
+          .filter((entry:SearchEntry)=>entry.type==="article")
+          .map(entryToSearchItem);
+      }
       if(request!==searchRequest||!layer.isConnected)return;
-      searchItems=(Array.isArray(payload?.entries)?payload.entries:[])
-        .filter((entry:SearchEntry)=>entry.type==="article")
-        .map(entryToSearchItem);
+      searchItems=searchIndexCache ?? [];
       searchLoadFailed=false;
     }catch{if(request===searchRequest){searchItems=[];searchLoadFailed=true;}}
     finally{if(request===searchRequest&&layer.isConnected){searchLoading=false;update();}}

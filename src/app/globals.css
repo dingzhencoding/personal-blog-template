@@ -262,3 +262,22 @@ html[data-doc-theme=starry] .slh-video-layer:after{content:"";position:absolute;
   .st-panel{min-width:250px!important;padding:16px!important;border-radius:16px!important}.st-title{padding:3px 4px 12px!important;font-size:1rem!important;letter-spacing:.12em!important}.st-row{min-height:54px!important;padding:12px 14px!important;border-radius:11px!important;font-size:1.06rem!important}.st-row-ico{font-size:1.25rem!important}.st-vol{padding:14px 8px 6px!important}
 }
 @media(max-width:700px){.template-empty{min-height:180px;padding:34px 20px;margin:14px auto 28px}}
+/* The document scrollbar belongs to the active theme, like every inner panel. */
+html{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--clone-accent,#69d5ff) 62%,#141a30) var(--vp-c-bg,#05060e)}
+html::-webkit-scrollbar{width:10px;height:10px}
+html::-webkit-scrollbar-track{background:var(--vp-c-bg,#05060e)}
+html::-webkit-scrollbar-thumb{border:2px solid var(--vp-c-bg,#05060e);border-radius:8px;background:color-mix(in srgb,var(--clone-accent,#69d5ff) 55%,#1a2036)}
+html::-webkit-scrollbar-thumb:hover{background:var(--clone-accent,#69d5ff)}
+/* Keep hero copy legible where the orbit video turns bright. */
+.slh-hero-inner{border-radius:28px;background:radial-gradient(ellipse 72% 66% at 50% 50%,rgba(4,8,22,.6),rgba(4,8,22,0) 78%)}
+.slh-subtitle,.slh-desc,.slh-eyebrow,.slh-hero-meta .meta{text-shadow:0 1px 10px rgba(3,6,18,.92),0 0 3px rgba(3,6,18,.85)}
+.slh-btn.ghost{background:rgba(6,10,26,.58);backdrop-filter:blur(6px)}
+/* Themed 404 for the static export. */
+.not-found{position:relative;display:grid;min-height:100vh;place-items:center;padding:96px 20px 60px;background:radial-gradient(ellipse 80% 60% at 50% 0%,var(--clone-glow,rgba(105,213,255,.16)),transparent 70%),var(--vp-c-bg,#05060e);color:var(--clone-text,#e8edff);text-align:center;font-family:Inter,"Microsoft YaHei",system-ui,sans-serif}
+.not-found__code{margin:0;font:700 clamp(5rem,16vw,9rem)/1 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--clone-accent,#69d5ff);text-shadow:0 0 34px var(--clone-glow,rgba(105,213,255,.45))}
+.not-found__title{margin:14px 0 8px;font-size:clamp(1.2rem,3.4vw,1.7rem);font-weight:650}
+.not-found__desc{margin:0 auto 26px;max-width:34em;color:var(--clone-muted,#aeb9dc);font-size:.95rem;line-height:1.8}
+.not-found__actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.not-found__actions a{padding:11px 22px;border:1px solid var(--clone-border,#324c73);border-radius:10px;color:var(--clone-text,#e8edff);text-decoration:none;font-weight:600;background:color-mix(in srgb,var(--vp-c-bg-elv,#11172e) 88%,transparent);transition:border-color .18s ease,color .18s ease,transform .18s ease}
+.not-found__actions a:hover{border-color:var(--clone-accent,#69d5ff);color:var(--clone-accent,#69d5ff);transform:translateY(-1px)}
+.not-found__actions a.primary{border-color:var(--clone-accent,#69d5ff);color:var(--clone-accent,#69d5ff)}

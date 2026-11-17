@@ -175,7 +175,7 @@ export function mountCosmicGalaxy(container: HTMLElement) {
   galaxy.classList.add("cosmic-nexus");
   canvas.removeAttribute("style");
   const oldHint = galaxy.querySelector<HTMLElement>(".galaxy-hint");
-  if (oldHint) oldHint.innerHTML = '<span class="gh-ico">⌖</span>拖动星域 · 点击模块传送 · 可开启摄像头手势控制';
+  if (oldHint) oldHint.innerHTML = '<span class="gh-ico">⌖</span>拖动星域 · 点击模块传送 · Ctrl+滚轮缩放 · 可开启摄像头手势控制';
 
   const markerLayer = document.createElement("div");
   markerLayer.className = "cosmic-markers";
@@ -199,6 +199,7 @@ export function mountCosmicGalaxy(container: HTMLElement) {
   camera.lookAt(cameraTarget);
   const texture = particleTexture();
   const sounds = new CosmicSoundEngine();
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const root = new THREE.Group();
   root.rotation.x = -.09;
@@ -275,7 +276,7 @@ export function mountCosmicGalaxy(container: HTMLElement) {
     label.addEventListener("pointerenter", () => sounds.hover(index));
     label.addEventListener("click", () => {
       sounds.warp();
-      window.setTimeout(() => { window.location.href = module.href; }, 180);
+      window.location.href = module.href;
     });
     markerLayer.append(label);
     nodes.push({ group, label, position: new THREE.Vector3(), data: module });
@@ -357,6 +358,8 @@ export function mountCosmicGalaxy(container: HTMLElement) {
   };
   const pointerUp = () => { dragging = false; galaxy.classList.remove("is-dragging"); };
   const wheel = (event: WheelEvent) => {
+    // Plain wheel must keep scrolling the page; only Ctrl/⌘+wheel (or pinch) zooms.
+    if (!event.ctrlKey && !event.metaKey) return;
     event.preventDefault();
     userZoomed = true;
     targetZoom = THREE.MathUtils.clamp(targetZoom + event.deltaY * .018, 30, 62);
@@ -424,7 +427,7 @@ export function mountCosmicGalaxy(container: HTMLElement) {
       if (performance.now() - fistSince > 650 && performance.now() - lastEnter > 1800) {
         lastEnter = performance.now();
         sounds.warp();
-        window.setTimeout(() => { window.location.href = MODULES[focused].href; }, 180);
+        window.location.href = MODULES[focused].href;
       }
     } else {
       fistSince = 0;
@@ -445,6 +448,7 @@ export function mountCosmicGalaxy(container: HTMLElement) {
     cameraButton.disabled = true;
     cameraButton.textContent = "连接摄像头…";
     setStatus("正在载入手势识别", "MEDIAPIPE INITIALIZING", true);
+    let linkFailed = false;
     try {
       await loadScript("https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js");
       if (!window.Hands) throw new Error("手势识别库不可用");
@@ -463,8 +467,16 @@ export function mountCosmicGalaxy(container: HTMLElement) {
     } catch (error) {
       stopCamera();
       const denied = error instanceof DOMException && (error.name === "NotAllowedError" || error.name === "PermissionDeniedError");
-      setStatus(denied ? "未获得摄像头权限" : "手势识别连接失败", denied ? "请允许摄像头后重试" : "GESTURE LINK ERROR");
-    } finally { cameraButton.disabled = false; }
+      linkFailed = error instanceof Error && error.message === "手势识别库载入失败";
+      if (linkFailed) {
+        cameraButton.disabled = true;
+        cameraButton.textContent = "◉ 手势控制不可用";
+        cameraButton.title = "手势识别库载入失败（网络受限），拖动与滚轮仍可操作星域";
+        setStatus("手势识别库不可用", "GESTURE LIB UNREACHABLE");
+      } else {
+        setStatus(denied ? "未获得摄像头权限" : "手势识别连接失败", denied ? "请允许摄像头后重试" : "GESTURE LINK ERROR");
+      }
+    } finally { if (!linkFailed) cameraButton.disabled = false; }
   };
   cameraButton.addEventListener("click", startCamera);
 
@@ -491,7 +503,7 @@ export function mountCosmicGalaxy(container: HTMLElement) {
     const delta = lastRendered ? Math.min((now - lastRendered) / 1000, .06) : 1 / 30;
     lastRendered = now;
     elapsed += delta;
-    if (!dragging && !stream) targetRotation += delta * .13;
+    if (!dragging && !stream && !reduceMotion) targetRotation += delta * .13;
     if (!dragging && Math.abs(targetRotation) > Math.PI * 200) {
       const turns = Math.trunc(targetRotation / (Math.PI * 2)) * Math.PI * 2;
       targetRotation -= turns;
@@ -503,13 +515,16 @@ export function mountCosmicGalaxy(container: HTMLElement) {
     camera.position.y = 6.7 + (zoom - 40) * .04;
     camera.lookAt(cameraTarget);
     root.rotation.y = rotation;
-    core.rotation.y += delta * .035;
-    coreGlow.rotation.y -= delta * .022;
-    dust.rotation.y += delta * .017;
-    energyRings.forEach((ring, index) => { ring.rotation.z += delta * (.028 + index * .012); });
-    const pulse = 1 + Math.sin(elapsed * 2.1) * .085;
+    if (!reduceMotion) {
+      core.rotation.y += delta * .035;
+      coreGlow.rotation.y -= delta * .022;
+      dust.rotation.y += delta * .017;
+      energyRings.forEach((ring, index) => { ring.rotation.z += delta * (.028 + index * .012); });
+    }
+    const pulse = reduceMotion ? 1 : 1 + Math.sin(elapsed * 2.1) * .085;
     nucleus.scale.set(5.2 * pulse, 3.2 * pulse, 1);
-    nucleusGlow.scale.set(16 * (1 + Math.sin(elapsed * 1.35) * .08), 10 * (1 + Math.sin(elapsed * 1.35) * .08), 1);
+    const glowPulse = reduceMotion ? 1 : 1 + Math.sin(elapsed * 1.35) * .08;
+    nucleusGlow.scale.set(16 * glowPulse, 10 * glowPulse, 1);
     nodes.forEach((node, index) => {
       node.group.rotation.y += delta * .12;
       node.group.getWorldPosition(node.position);

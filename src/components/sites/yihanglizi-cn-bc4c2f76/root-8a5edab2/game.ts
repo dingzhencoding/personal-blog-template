@@ -83,6 +83,7 @@ export function enhanceGame(root: HTMLElement): () => void {
   let busy = false;
   let ended = false;
   let touchStart: { x: number; y: number } | null = null;
+  let boardVisible = false;
   let moveTimer: number | undefined;
   let effectTimer: number | undefined;
 
@@ -256,7 +257,7 @@ export function enhanceGame(root: HTMLElement): () => void {
 
   function onKeyDown(event: KeyboardEvent): void {
     const direction = gameKey(event.key);
-    if (!direction || event.altKey || event.ctrlKey || event.metaKey || shouldIgnoreKey(event.target)) return;
+    if (!direction || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey || !boardVisible || shouldIgnoreKey(event.target)) return;
     event.preventDefault();
     move(direction);
   }
@@ -293,6 +294,11 @@ export function enhanceGame(root: HTMLElement): () => void {
   placeKnight();
   const knightObserver = new ResizeObserver(placeKnight);
   knightObserver.observe(board);
+  const boardObserver = new IntersectionObserver(
+    entries => { boardVisible = entries[0]?.isIntersecting ?? false; },
+    { threshold: .3 },
+  );
+  boardObserver.observe(board);
   window.addEventListener("keydown", onKeyDown);
   board.addEventListener("touchstart", onTouchStart, { passive: true });
   board.addEventListener("touchend", onTouchEnd, { passive: false });
@@ -306,6 +312,7 @@ export function enhanceGame(root: HTMLElement): () => void {
     board.removeEventListener("touchcancel", onTouchCancel);
     board.style.touchAction = originalTouchAction;
     knightObserver.disconnect();
+    boardObserver.disconnect();
     if (moveTimer !== undefined) window.clearTimeout(moveTimer);
     if (effectTimer !== undefined) window.clearTimeout(effectTimer);
     board.querySelector(".c2048-overlay")?.remove();

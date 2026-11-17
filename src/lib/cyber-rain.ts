@@ -1,6 +1,7 @@
 /** Paint the cyber rain immediately, before React and the main client bundle arrive. */
 export function bootstrapCyberRain() {
   if (document.documentElement.dataset.docTheme !== "cyber") return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const canvas = document.querySelector<HTMLCanvasElement>(".wasteland .rain-canvas");
   const context = canvas?.getContext("2d");
   if (!canvas || !context) return;

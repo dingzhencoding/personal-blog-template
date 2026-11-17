@@ -12,8 +12,17 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const article = getPublishedArticle((await params).slug);
-  return { title: article ? `${article.title} · 技术学习记录` : "文章 · 个人博客" };
+  const slug = (await params).slug;
+  const article = getPublishedArticle(slug);
+  if (!article) return { title: "文章 · 个人博客" };
+  const path = `/moments/tech/${slug}/`;
+  const description = article.summary || `技术学习记录：${article.title}`;
+  return {
+    title: `${article.title} · 技术学习记录`,
+    description,
+    alternates: { canonical: path },
+    openGraph: { type: "article", title: article.title, description, url: path },
+  };
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {

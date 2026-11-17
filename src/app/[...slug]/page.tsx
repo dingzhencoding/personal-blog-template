@@ -11,6 +11,12 @@ const pages: Record<string, string> = {
   "/about/": "about-4f10f17b",
   "/resume/": "resume-d4be9fa6",
 };
+const descriptions: Record<string, string> = {
+  "/friends/": "友链 · 与同好站点在同一片星光下连接，互换访问与灵感。",
+  "/tools/": "工具 · 正在使用的 AI 编程与效率工具合集，附真实使用体验。",
+  "/about/": "关于 · 站点主人的自我介绍、技能栈与联系方式。",
+  "/resume/": "简历 · 求职历程、教育背景与项目经历。",
+};
 
 function routeFor(slug: string[]) {
   const path = `/${slug.join("/")}`;
@@ -26,7 +32,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const key = pages[path];
   if (!key) return {};
   const meta = JSON.parse(readFileSync(join(process.cwd(), site, key, "meta.json"), "utf8")) as { title: string };
-  return { title: meta.title };
+  const description = descriptions[path];
+  return {
+    title: meta.title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { title: meta.title, description, url: path },
+  };
 }
 
 export default async function SitePage({ params }: { params: Promise<{ slug: string[] }> }) {

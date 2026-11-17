@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { isValidElement } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import { isValidElement, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ContentEntry } from "@/lib/content/types";
@@ -78,8 +78,51 @@ function publishedDate(entry: ContentEntry): string {
   return `${pick("year")}-${pick("month")}-${pick("day")}`;
 }
 
+function CodeBlock({ children, ...props }: ComponentPropsWithoutRef<"pre">) {
+  const child = Array.isArray(children) ? children[0] : children;
+  const isMermaid = isValidElement<{ className?: string }>(child)
+    && /language-(?:mermaid|mer)(?:\s|$)/.test(child.props.className ?? "");
+  const preRef = useRef<HTMLPreElement>(null);
+  const [copyState, setCopyState] = useState<"idle" | "ok" | "fail">("idle");
+  const timerRef = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timerRef.current), []);
+  if (isMermaid) return <MermaidPre {...props}>{children}</MermaidPre>;
+  const copy = () => {
+    const text = preRef.current?.innerText ?? "";
+    const settle = (state: "ok" | "fail") => {
+      setCopyState(state);
+      window.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(() => setCopyState("idle"), 1600);
+    };
+    navigator.clipboard?.writeText(text).then(() => settle("ok")).catch(() => settle("fail"));
+  };
+  return (
+    <div className="code-block">
+      <button type="button" className="code-block__copy" onClick={copy} aria-label="复制代码">
+        {copyState === "ok" ? "已复制 ✓" : copyState === "fail" ? "复制失败" : "复制"}
+      </button>
+      <pre ref={preRef} {...props}>{children}</pre>
+    </div>
+  );
+}
+
 export default function ArticleReader({ entry }: { entry: ContentEntry }) {
   const headings = extractHeadings(entry.bodyMd);
+  const headingIds = headings.map(item => item.id).join(",");
+  const [activeId, setActiveId] = useState("");
+  useEffect(() => {
+    const ids = headingIds ? headingIds.split(",") : [];
+    const nodes = ids.map(id => document.getElementById(id)).filter((node): node is HTMLElement => node !== null);
+    if (!nodes.length) return;
+    const observer = new IntersectionObserver(
+      entries => {
+        for (const item of entries) if (item.isIntersecting) { setActiveId(item.target.id); break; }
+      },
+      { rootMargin: "-96px 0px -68% 0px" },
+    );
+    nodes.forEach(node => observer.observe(node));
+    return () => observer.disconnect();
+  }, [headingIds]);
   const renderedHeadings = new Map<string, number>();
   const heading = (depth: number, children: ReactNode) => {
     const title = nodeText(children).trim();
@@ -112,7 +155,7 @@ export default function ArticleReader({ entry }: { entry: ContentEntry }) {
                 remarkPlugins={[remarkGfm]}
                 skipHtml
                 components={{
-                  pre: MermaidPre,
+                  pre: CodeBlock,
                   h1: ({ children }) => heading(1, children),
                   h2: ({ children }) => heading(2, children),
                   h3: ({ children }) => heading(3, children),
@@ -135,8 +178,9 @@ export default function ArticleReader({ entry }: { entry: ContentEntry }) {
               <nav>
                 {headings.map((item) => (
                   <a
-                    className={`article-reader__toc-link article-reader__toc-link--depth-${item.depth}`}
+                    className={`article-reader__toc-link article-reader__toc-link--depth-${item.depth}${activeId === item.id ? " is-active" : ""}`}
                     href={`#${item.id}`}
+                    aria-current={activeId === item.id ? "location" : undefined}
                     key={item.id}
                   >{item.title}</a>
                 ))}

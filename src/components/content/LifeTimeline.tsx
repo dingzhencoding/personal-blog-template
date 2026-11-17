@@ -47,6 +47,10 @@ export function LifeTimeline({ entries }: { entries: ContentEntry[] }) {
     if (!lightbox) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setLightbox(null);
+      if (event.key === "Tab") {
+        event.preventDefault();
+        document.querySelector<HTMLButtonElement>(".life-timeline__lightbox-close")?.focus();
+      }
     };
     document.addEventListener("keydown", onKeyDown);
     const previousOverflow = document.body.style.overflow;
