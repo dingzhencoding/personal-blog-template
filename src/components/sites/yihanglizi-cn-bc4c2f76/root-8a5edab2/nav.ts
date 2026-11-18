@@ -246,6 +246,16 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
   const navButton = nav?.querySelector<HTMLButtonElement>(".ns-btn");
   const sound = document.querySelector<HTMLElement>(".sound-toggle");
   const soundButton = sound?.querySelector<HTMLButtonElement>(".st-btn");
+  const existingAdminLink = document.querySelector<HTMLAnchorElement>(".nav-admin-link");
+  const adminLink = existingAdminLink ?? document.createElement("a");
+  if (!existingAdminLink) {
+    adminLink.className = "nav-admin-link";
+    adminLink.href = "/write/";
+    adminLink.title = "内容管理";
+    adminLink.setAttribute("aria-label", "进入内容管理端");
+    adminLink.textContent = "+";
+    sound?.insertAdjacentElement("afterend", adminLink);
+  }
   const blogMenu = document.querySelector<HTMLButtonElement>(".VPNavBarMenuGroup button");
   const blogFlyout = blogMenu?.closest<HTMLElement>(".VPFlyout");
   const blogPanelTitle = document.createElement("div");
@@ -596,5 +606,5 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
   searchButton?.addEventListener("click",openSearch);
   const keydown=(e:KeyboardEvent)=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openSearch();}if(e.key==="Escape"){closeBlogMenu();closeThemePanel();closeSoundPanel();closeSearch();}};
   document.addEventListener("keydown",keydown);
-  return ()=>{navButton?.removeEventListener("click",toggleTheme);soundButton?.removeEventListener("click",toggleSound);burger?.removeEventListener("click",toggleMobile);blogMenu?.removeEventListener("click",toggleBlogMenu);searchButton?.removeEventListener("click",openSearch);if(searchButton){if(searchButtonLabel===null)searchButton.removeAttribute("aria-label");else searchButton.setAttribute("aria-label",searchButtonLabel);}if(searchButtonPlaceholder&&searchButtonPlaceholderText!==null)searchButtonPlaceholder.textContent=searchButtonPlaceholderText;document.removeEventListener("keydown",keydown);document.removeEventListener("click",clickTone);document.removeEventListener("pointerdown",closePanelsOnOutsidePointer,true);document.removeEventListener("visibilitychange",syncOrbitPlayback);window.removeEventListener("beforeunload",saveMusicProgress);audio.removeEventListener("timeupdate",saveMusicProgress);saveMusicProgress();backgroundMusic.dispose();orbitPlayback?.dispose();void audioContext?.close();closeBlogMenu();blogPanelTitle.remove();closeThemePanel();closeSoundPanel();closeSearch();mobile?.remove();if(createdStar)star?.remove();disposeGalaxy();};
+  return ()=>{navButton?.removeEventListener("click",toggleTheme);soundButton?.removeEventListener("click",toggleSound);burger?.removeEventListener("click",toggleMobile);blogMenu?.removeEventListener("click",toggleBlogMenu);searchButton?.removeEventListener("click",openSearch);if(searchButton){if(searchButtonLabel===null)searchButton.removeAttribute("aria-label");else searchButton.setAttribute("aria-label",searchButtonLabel);}if(searchButtonPlaceholder&&searchButtonPlaceholderText!==null)searchButtonPlaceholder.textContent=searchButtonPlaceholderText;document.removeEventListener("keydown",keydown);document.removeEventListener("click",clickTone);document.removeEventListener("pointerdown",closePanelsOnOutsidePointer,true);document.removeEventListener("visibilitychange",syncOrbitPlayback);window.removeEventListener("beforeunload",saveMusicProgress);audio.removeEventListener("timeupdate",saveMusicProgress);saveMusicProgress();backgroundMusic.dispose();orbitPlayback?.dispose();void audioContext?.close();closeBlogMenu();blogPanelTitle.remove();closeThemePanel();closeSoundPanel();closeSearch();mobile?.remove();if(!existingAdminLink)adminLink.remove();if(createdStar)star?.remove();disposeGalaxy();};
 }

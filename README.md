@@ -4,11 +4,11 @@
 
 ## 版本与分支
 
-- `codex/fullstack`：原有 Next.js + MySQL + Docker + Caddy 版本，保留「＋」写作功能。
-- `main`：当前静态版和唯一的自动发布分支，去掉「＋」，用本地 Markdown 和图片更新内容。
+- `codex/fullstack`：原有 Next.js + MySQL + Docker + Caddy 版本，保留供参考。
+- `main`：当前静态版和唯一的自动发布分支，带「＋」在线写作入口。
 - `codex/static`：静态版日常开发和内容提交分支，修改验证后合并到 `main`。
 
-日常更新先提交到 `codex/static`，再合并到 `main` 发布，每次发布后保持两分支代码一致。需要在线写作时请查看[前后端版说明](https://github.com/Java123456com/personal-blog-template/blob/codex/fullstack/README.md)。
+日常更新先提交到 `codex/static`，再合并到 `main` 发布，每次发布后保持两分支代码一致。也可以点站点导航右侧的「＋」进入 `/write/` 在线写作和管理简历（见下文）。
 
 ## 本地开发和发布预览
 
@@ -68,6 +68,25 @@ images:
 
 技术文章地址为 `/moments/tech/<slug>/`。搜索索引包括标题、标签、摘要和正文。草稿不会生成网页或进入搜索；公开 GitHub 仓库中的草稿源文件仍可被仓库访客读取。最新的 7 篇技术文章会依次挂在首页「近期星历」的北斗七星上。
 
+## 在线写作与简历管理
+
+导航右侧的「＋」按钮（手机端直接访问 `/write/`）打开内容管理页，可以新建、编辑、存草稿、发布、删除技术文章和生活记录，上传图片，以及管理简历。页面是纯前端实现：通过 GitHub API 把内容提交到 `codex/static` 并自动合并到 `main`，触发同一套 Actions 发布，无需服务器和数据库。
+
+日常进入只需输入管理密码。首次使用做一次性初始化：
+
+1. 打开 [GitHub 细粒度令牌创建页](https://github.com/settings/personal-access-tokens/new)。
+2. Repository access 选 Only select repositories，勾选本仓库；Permissions → Repository permissions → Contents 设为 Read and write；设置过期时间（建议不超过 90 天）。
+3. 在 `/write/` 初始化页粘贴令牌并设定管理密码（至少 8 位，建议 12 位以上混合字符）。令牌会用密码加密（PBKDF2 + AES-GCM）后存为 `public/admin-lock.json`（随站点发布，登录时从博客自身域名读取，不依赖 GitHub 网络），之后每次进入只输密码，浏览器本地解密出令牌使用。
+4. 令牌过期或忘记密码时，在登录页点「重新设置」，用新令牌重新初始化；页头「改密码」可随时更换管理密码。
+
+注意：
+
+- 加密锁文件在公开仓库中可见，密码强度是唯一的保护，请勿使用弱密码；密码和令牌都不会发送到第三方服务器。
+- 上传的图片会压缩成 WebP（GIF 保留动画）存入 `public/images/uploads/`，随记录保存时一并提交。
+- 草稿（`draft: true`）不会出现在网站上，但公开仓库中的草稿源文件仍可被仓库访客读取。
+- 简历 tab 支持上传 / 替换 / 删除 `resume.pdf`，以及编辑 / 从模板创建 / 删除在线 `resume.md`。
+- 内容格式不正确会导致构建失败，网站保留上一个版本；可在 Actions → Publish static blog 查看日志。
+
 ## 简历
 
 简历页 `/resume/` 从 `content/resume/` 读取，两种文件放一种即可：
@@ -75,7 +94,7 @@ images:
 - `resume.md`：Markdown 简历，页面会渲染成带动效的在线简历（头像光环、职位打字机、数字滚动、随滚动点亮的时间线、目录圆点），也可以直接打印成干净的 A4 版本。
 - `resume.pdf`：PDF 简历。只有 PDF 时页面直接展示 PDF；两者都有时展示 Markdown 版本，并提供「下载 PDF」和「在线查看」。
 
-复制 `content/resume/_example.md` 为 `resume.md`，按模板填写后删除 `draft: true`。写法要点：
+复制 `content/resume/_example.md` 为 `resume.md`，按模板填写后删除 `draft: true`；也可以在 `/write/` 的「简历」tab 直接上传 PDF 或编辑在线简历。写法要点：
 
 - 元数据里填写 `name`、`title`（可以写成列表，会轮播）、`summary`、`location`、`contacts`、`skills`、`stats`；`avatar` 可选，图片放在 `public/images/`。
 - 正文用 `## 工作经历` 这样的二级标题分区；每段经历写成 `### 公司 · 职位 | 2024.07 – 至今`，竖线后面是时间，会显示在卡片右上角。

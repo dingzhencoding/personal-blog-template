@@ -44,7 +44,7 @@ const walk = dir => {
     if (entry.isDirectory()) walk(full);
     else if (entry.name === "index.html") {
       const route = relative(outDir, dir).split("\\").join("/");
-      if (route === "404") continue;
+      if (route === "404" || route === "write") continue;
       urls.push({ loc: `${origin}/${route ? `${route}/` : ""}`, lastmod: statSync(full).mtime.toISOString().slice(0, 10) });
     }
   }

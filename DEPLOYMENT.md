@@ -1,6 +1,6 @@
 # GitHub Pages 静态部署
 
-仓库：`Java123456com/personal-blog-template`。
+仓库：`dingzhencoding/personal-blog-template`（账号曾用名 `Java123456com`）。
 日常开发和内容提交分支：`codex/static`。静态版发布分支：`main`。原有前后端版本：`codex/fullstack`。
 
 ## 首次启用
@@ -9,7 +9,7 @@
 
 1. 仓库 Settings → Pages → Build and deployment，将 Source 设为 GitHub Actions。
 2. Custom domain 填入 `blog.noova.cloud` 并保存。在 GitHub 账号 Settings → Pages 验证域名所有权，验证成功后保留对应 TXT 记录。
-3. DNSPod 删除 `blog` 当前指向腾讯云的 A 记录（以及同名冲突的 AAAA 记录，如有），添加 CNAME：主机记录 `blog`，记录值 `Java123456com.github.io`。不带协议、路径或仓库名。
+3. DNSPod 删除 `blog` 当前指向腾讯云的 A 记录（以及同名冲突的 AAAA 记录，如有），添加 CNAME：主机记录 `blog`，记录值 `dingzhencoding.github.io`。不带协议、路径或仓库名。账号改名前配置的旧值 `Java123456com.github.io` 建议同步更新为新主机名。
 4. 等待域名检查和证书签发完成，开启 Enforce HTTPS。
 5. 仓库 Settings → Environments → github-pages 的 Deployment branches and tags 中允许 `main` 分支部署。
 6. 推送一次 `main` 分支提交触发部署，或从 Actions → Publish static blog 手动运行并选择 `main`。工作流只构建和部署 `main`。
@@ -40,6 +40,8 @@ git switch codex/static
 ```
 
 开始修改前先同步远端分支。如果网页合并产生了新的 `main` 提交，下一次开发前在 `codex/static` 执行 `git merge --ff-only origin/main`，使两分支从相同提交继续。日常修改都先进入 `codex/static`，每次发布后检查 `git diff main codex/static` 没有内容差异。
+
+也可以直接在站点「＋」（`/write/`）里发布：首次初始化时填入 GitHub 细粒度令牌并设定管理密码（令牌加密后存为 `public/admin-lock.json`），之后输密码即可把内容提交到 `codex/static` 并自动合并到 `main`，等效于上面的流程。在线发布后本地先 `git fetch` 并同步两分支再继续开发。初始化和安全注意见 README 的「在线写作与简历管理」。
 
 本地预览：
 
