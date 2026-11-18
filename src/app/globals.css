@@ -30,7 +30,9 @@ html[data-doc-theme=starry] .clone-mobile-menu{background:#101427}
 html[data-doc-theme=starry] body{background:#05060e}
 /* Let the shared starfield/code rain show through document page shells. */
 html[data-doc-theme] :is(.friends-page,.about-page){background:transparent!important}
-html[data-doc-theme=starry] .wasteland,html:not([data-doc-theme=starry]) .slh{display:none!important}
+/* The "hide the inactive homepage theme" rule is inlined in the layout head on
+   purpose: it must ship with the HTML so a stale or missing stylesheet can
+   never leave both themes stacked. */
 html[data-doc-theme=starry] .VPNav{background:rgba(14,18,36,.91)!important}
 html[data-doc-theme=starry] .slh{background:linear-gradient(180deg,rgba(15,20,43,.58),rgba(14,22,42,.16) 40%,transparent)}
 .article-draft{min-height:52vh;padding-top:32px}.article-draft-note{margin:32px 0;padding:20px 24px;border-left:3px solid var(--vp-c-brand-1,#d89b56);background:var(--vp-c-bg-soft,#242424);border-radius:0 8px 8px 0}
