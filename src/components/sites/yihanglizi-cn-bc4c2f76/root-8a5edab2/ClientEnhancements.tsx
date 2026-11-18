@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect } from "react";
+import { enhancePageEnter } from "@/lib/page-enter";
 import { enhanceGame } from "./game";
 import { enhanceNav } from "./nav";
 
@@ -120,11 +121,14 @@ export default function ClientEnhancements() {
     window.addEventListener("clone:theme-change", syncTheme);
     // The starry home is server-rendered next to this root, so no markup is passed.
     const disposeNav = enhanceNav(root, "");
+    // Both theme homes live in the layout; the hidden one reveals when switched to.
+    const disposeEnter = enhancePageEnter(document.querySelector<HTMLElement>("#app .Layout") ?? root);
     syncTheme();
     return () => {
       window.removeEventListener("clone:theme-change", syncTheme);
       stopCyber();
       disposeNav();
+      disposeEnter();
     };
   }, []);
   return null;
