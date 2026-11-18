@@ -27,7 +27,7 @@ export function nodeText(node: ReactNode): string {
 
 type MarkdownElementProps<T extends keyof React.JSX.IntrinsicElements> = ComponentPropsWithoutRef<T> & { node?: unknown };
 
-function Pre({ children, node: _node, ...props }: MarkdownElementProps<"pre">) {
+export function MarkdownPre({ children, node: _node, ...props }: MarkdownElementProps<"pre">) {
   const child = Array.isArray(children) ? children[0] : children;
   if (isValidElement<{ className?: string; children?: ReactNode }>(child)
     && /language-(?:mermaid|mer)(?:\s|$)/.test(child.props.className ?? "")) {
@@ -48,7 +48,7 @@ export function ArticleMarkdown({ source }: { source: string }) {
       remarkPlugins={[remarkGfm]}
       skipHtml
       components={{
-        pre: Pre,
+        pre: MarkdownPre,
         h1: ({ children }) => heading(1, children),
         h2: ({ children }) => heading(2, children),
         h3: ({ children }) => heading(3, children),
@@ -67,7 +67,7 @@ export function ResumeMarkdown({ source }: { source: string }) {
       remarkPlugins={[remarkGfm]}
       skipHtml
       components={{
-        pre: Pre,
+        pre: MarkdownPre,
         a: ({ href, children, node: _node, ...props }) => /^https?:/i.test(href ?? "")
           ? <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>
           : <a href={href} {...props}>{children}</a>,
