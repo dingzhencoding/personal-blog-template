@@ -65,6 +65,9 @@ html:not([data-page-enter=on]) .page-aurora{opacity:var(--aurora-max);animation:
 @keyframes page-aurora-in{to{opacity:var(--aurora-max)}}
 @keyframes page-aurora-drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(8%,6%) scale(1.15)}100%{transform:translate(-6%,-4%) scale(.95)}}
 @media (prefers-reduced-motion:reduce){.page-aurora{opacity:var(--aurora-max);animation:none}.page-aurora i{animation:none}}
+/* Home and the blog opt out: their backdrops already move, and the extra
+   blur/blend layers made those pages feel heavy. Content renders statically. */
+html[data-page-enter=on] [data-enter-off] [data-reveal]:not(.rs *){opacity:1!important;translate:none!important;filter:none!important;animation:none!important}
 /* Hero stacking for the pages whose captured hero had no gradient layer. */
 .tools-root .hero{position:relative;isolation:isolate;overflow:hidden}
 .tools-root .hero>:not(.page-aurora){position:relative;z-index:1}

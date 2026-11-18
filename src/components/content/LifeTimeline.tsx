@@ -67,7 +67,7 @@ export function LifeTimeline({ entries, bodies }: { entries: ContentEntry[]; bod
   };
 
   return (
-    <section className="life-timeline" aria-label="日常生活记录">
+    <section className="life-timeline" aria-label="日常生活记录" data-enter-off="">
       <header className="life-timeline__hero" data-enter-hero>
         <BackgroundVideo
           className="life-timeline__hero-video"
@@ -75,7 +75,6 @@ export function LifeTimeline({ entries, bodies }: { entries: ContentEntry[]; bod
           poster="/media/lazy-river-poster.webp"
         />
         <div className="life-timeline__hero-shade" aria-hidden="true" />
-        <div className="page-aurora page-aurora--soft" aria-hidden="true"><i /><i /><i /></div>
         <div className="life-timeline__hero-content">
           <span className="life-timeline__eyebrow" data-reveal>🌿 LIFE</span>
           <h1 data-reveal>日常生活记录</h1>

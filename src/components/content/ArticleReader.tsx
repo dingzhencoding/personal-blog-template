@@ -53,7 +53,7 @@ function publishedDate(entry: ContentEntry): string {
 export default function ArticleReader({ entry }: { entry: ContentEntry }) {
   const headings = extractHeadings(entry.bodyMd);
   return (
-    <main className="article-reader">
+    <main className="article-reader" data-enter-off="">
       <div className="article-reader__container">
         <div className="article-reader__main">
           <nav className="article-reader__breadcrumb" aria-label="当前位置" data-reveal>
