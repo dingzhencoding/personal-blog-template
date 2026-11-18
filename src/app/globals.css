@@ -306,7 +306,7 @@ html::-webkit-scrollbar-thumb:hover{background:var(--clone-accent,#69d5ff)}
    matches the neighbouring icon buttons. */
 @media (max-width:767px){
   .VPNavBarTitle .title>span:first-child{margin-right:10px}
-  .VPNavBarSearch .DocSearch-Button{width:36px;height:36px;margin:0;padding:0;justify-content:center;background:transparent!important;border-radius:10px}
+  html[data-doc-theme] .VPNavBarSearch .DocSearch-Button{width:36px;height:36px;margin:0;padding:0;justify-content:center;background:transparent!important;border-radius:10px}
 }
 
 @media (prefers-reduced-motion:reduce){.cp-shortcut{transition:none}}
