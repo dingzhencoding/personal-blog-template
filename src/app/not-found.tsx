@@ -1,5 +1,6 @@
-import Link from "next/link";
-
+// Cascade order matters: the layout loads the shared theme, then the page
+// theme and the site overrides load here.
+import "@/app/globals.css";
 export default function NotFound() {
   return (
     <main className="not-found">
@@ -11,9 +12,9 @@ export default function NotFound() {
           回到首页继续观星，或去技术记录里翻翻已有的星历。
         </p>
         <div className="not-found__actions">
-          <Link className="primary" href="/">返回首页</Link>
-          <Link href="/moments/tech/">技术学习记录</Link>
-          <Link href="/moments/life/">日常生活记录</Link>
+          <a className="primary" href="/">返回首页</a>
+          <a href="/moments/tech/">技术学习记录</a>
+          <a href="/moments/life/">日常生活记录</a>
         </div>
       </div>
     </main>

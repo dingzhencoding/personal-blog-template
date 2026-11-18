@@ -1,5 +1,10 @@
+// Cascade order matters: the layout loads the shared theme, then the page
+// theme and the site overrides load here.
+import "@/styles/theme.home.generated.css";
+import "@/app/globals.css";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import RawHtml from "@/components/content/RawHtml";
 import ClientEnhancements from "@/components/sites/yihanglizi-cn-bc4c2f76/root-8a5edab2/ClientEnhancements";
 import { bootstrapHomeBackground, canPlayBackgroundVideoIn, homeBackgroundVideo, inlineVideoAttributes } from "@/lib/background-video";
 import { bootstrapCyberRain } from "@/lib/cyber-rain";
@@ -20,5 +25,5 @@ export default function Home() {
   const homeMarkup = markup.replace(insertionPoint, `</footer></div><!----><!----><!----></div>${starHome}</div></div><!--[--><!--]--></div></div><footer`);
   const bootstrap = `(${bootstrapHomeBackground.toString()})(${JSON.stringify(homeBackgroundVideo.src)},${JSON.stringify(homeBackgroundVideo.poster)},(${canPlayBackgroundVideoIn.toString()}),${JSON.stringify(inlineVideoAttributes)});`;
   const rainBootstrap = `(${bootstrapCyberRain.toString()})();`;
-  return <><div id="app" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: homeMarkup }} /><script dangerouslySetInnerHTML={{ __html: rainBootstrap }} /><script dangerouslySetInnerHTML={{ __html: bootstrap }} /><ClientEnhancements starMarkup={starMarkup} /></>;
+  return <><RawHtml id="home" domId="app" html={homeMarkup} /><script dangerouslySetInnerHTML={{ __html: rainBootstrap }} /><script dangerouslySetInnerHTML={{ __html: bootstrap }} /><ClientEnhancements /></>;
 }

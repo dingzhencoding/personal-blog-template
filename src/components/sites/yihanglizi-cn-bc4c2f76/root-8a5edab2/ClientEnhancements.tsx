@@ -103,7 +103,7 @@ function enhanceCipher(root: HTMLElement) {
   return () => { buttons[0]?.removeEventListener("click", enter); buttons[1]?.removeEventListener("click", open); document.removeEventListener("keydown", esc); close(); };
 }
 
-export default function ClientEnhancements({ starMarkup }: { starMarkup: string }) {
+export default function ClientEnhancements() {
   useLayoutEffect(() => {
     const root = document.querySelector<HTMLElement>(".wasteland");
     if (!root) return;
@@ -118,13 +118,14 @@ export default function ClientEnhancements({ starMarkup }: { starMarkup: string 
       else stopCyber();
     };
     window.addEventListener("clone:theme-change", syncTheme);
-    const disposeNav = enhanceNav(root, starMarkup);
+    // The starry home is server-rendered next to this root, so no markup is passed.
+    const disposeNav = enhanceNav(root, "");
     syncTheme();
     return () => {
       window.removeEventListener("clone:theme-change", syncTheme);
       stopCyber();
       disposeNav();
     };
-  }, [starMarkup]);
+  }, []);
   return null;
 }

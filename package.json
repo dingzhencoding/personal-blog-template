@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "content:generate": "node scripts/generate-search-index.mjs",
-    "predev": "npm run content:generate",
+    "predev": "npm run content:generate && npm run theme:css",
     "dev": "next dev",
-    "prebuild": "npm run content:generate",
+    "prebuild": "npm run content:generate && npm run theme:css",
     "build": "next build",
     "postbuild": "node scripts/finalize-export.mjs",
     "start": "node scripts/serve-static.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "theme:css": "node scripts/build-theme-css.mjs"
   },
   "dependencies": {
     "@types/three": "^0.186.0",
@@ -28,6 +29,7 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "playwright": "^1.63.0",
+    "postcss": "^8.5.33",
     "typescript": "^5.9.0"
   }
 }

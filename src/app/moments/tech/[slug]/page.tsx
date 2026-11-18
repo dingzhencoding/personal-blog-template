@@ -1,3 +1,6 @@
+// Cascade order matters: the layout loads the shared theme, then the page
+// theme and the site overrides load here.
+import "@/app/globals.css";
 import { notFound } from "next/navigation";
 import ContentSiteShell from "@/components/content/ContentSiteShell";
 import ArticleReader from "@/components/content/ArticleReader";

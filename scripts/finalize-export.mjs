@@ -1,5 +1,28 @@
-import { existsSync, unlinkSync, rmdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, unlinkSync, rmdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { resolve, join, relative } from "node:path";
+
+// Inject fragments that src/components/content/RawHtml.tsx kept out of the RSC
+// payload. Every placeholder must resolve, or the page would ship empty.
+const rawHtmlDir = resolve(".next-raw-html");
+const rawHtml = id => {
+  const file = join(rawHtmlDir, `${id}.html`);
+  if (!existsSync(file)) throw new Error(`Missing raw HTML fragment "${id}" (${file})`);
+  return readFileSync(file, "utf8");
+};
+let injected = 0;
+const injectRawHtml = dir => {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) injectRawHtml(full);
+    else if (entry.name.endsWith(".html")) {
+      const html = readFileSync(full, "utf8");
+      if (!html.includes("<!--raw-html:")) continue;
+      writeFileSync(full, html.replace(/<!--raw-html:([\w-]+)-->/g, (_, id) => { injected++; return rawHtml(id); }));
+    }
+  }
+};
+injectRawHtml(resolve("out"));
+console.log(`finalize-export: injected ${injected} raw HTML fragments`);
 
 // Next.js requires a parameter to export an otherwise empty dynamic route.
 // Its reserved 404 placeholder is a build detail and must not be published.

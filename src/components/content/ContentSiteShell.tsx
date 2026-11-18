@@ -1,13 +1,7 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import type { ReactNode } from "react";
 import PageEnhancements from "@/components/sites/yihanglizi-cn-bc4c2f76/shared/PageEnhancements";
-
-const source = join(process.cwd(), "src/components/sites/yihanglizi-cn-bc4c2f76/moments-tech-e3a2705e/markup.html");
-const markup = readFileSync(source, "utf8");
-const navMarkup = markup.match(/<header class="VPNav"[\s\S]*?<\/header>/)?.[0] ?? "";
-
-if (!navMarkup) throw new Error("Could not find the shared site navigation.");
+import RawHtml from "@/components/content/RawHtml";
+import { navMarkupFor } from "@/lib/site-nav";
 
 export default function ContentSiteShell({ path, children }: { path: string; children: ReactNode }) {
   return <>
@@ -20,7 +14,7 @@ export default function ContentSiteShell({ path, children }: { path: string; chi
           <div data-v-5dc8c522="" className="nebula active" />
         </div>
         <a href="#VPContent" className="VPSkipLink visually-hidden">Skip to content</a>
-        <div className="content-site-shell__nav" dangerouslySetInnerHTML={{ __html: navMarkup }} />
+        <RawHtml id={`nav${path.replace(/\W+/g, "-")}`} className="content-site-shell__nav" html={navMarkupFor(path)} />
         <div className="VPContent" id="VPContent">{children}</div>
       </div>
     </div>

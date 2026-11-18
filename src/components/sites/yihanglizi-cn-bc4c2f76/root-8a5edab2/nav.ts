@@ -318,7 +318,7 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
       root.querySelectorAll<HTMLElement>("[data-theme]").forEach(node => node.dataset.theme = starry ? "starry" : "cyber");
     }
     if (starry && isHome && appContent) {
-      if (!star) {
+      if (!star && starMarkup) {
         const holder = document.createElement("div");holder.innerHTML=starMarkup;
         star=holder.firstElementChild as HTMLElement;
         const videoLayer=document.createElement("div");
@@ -328,7 +328,7 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
         star.prepend(videoLayer);
         appContent.append(star);createdStar=true;
       }
-      if (!galaxyReady) { disposeGalaxy=paintGalaxy(star); galaxyReady=true; }
+      if (star && !galaxyReady) { disposeGalaxy=paintGalaxy(star); galaxyReady=true; }
     }
     if (!starry && galaxyReady) {
       disposeGalaxy();
@@ -492,7 +492,7 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
   const searchButtonPlaceholder=searchButton?.querySelector<HTMLElement>(".DocSearch-Button-Placeholder")??null;
   const searchButtonPlaceholderText=searchButtonPlaceholder?.textContent??null;
   if(searchButton){searchButton.setAttribute("aria-label","搜索知识文章");}
-  if(searchButtonPlaceholder){searchButtonPlaceholder.textContent="🔍 搜索文章";}
+  if(searchButtonPlaceholder){searchButtonPlaceholder.textContent="搜索文章";}
   let searchItems:SearchItem[]=[],searchRequest=0,searchDetails=true,searchActive=0,searchLoading=false,searchLoadFailed=false;
   let searchPreviousOverflow="",searchPreviousFocus:HTMLElement|null=null;
   const closeSearch=()=>{

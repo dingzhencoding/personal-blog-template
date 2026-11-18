@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import "./globals.css";
+// Loaded first on every route; page themes and globals.css follow per page.
+import "@/styles/theme.shared.generated.css";
 import CatPet from "@/components/sites/yihanglizi-cn-bc4c2f76/shared/CatPet";
 import { bootstrapOptionalFont } from "@/lib/optional-font";
 

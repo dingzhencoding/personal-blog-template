@@ -11,3 +11,5 @@ artifacts/
 .env*
 !.env.example
 !.env.local.example
+src/styles/*.generated.css
+.next-raw-html/
