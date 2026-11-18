@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect } from "react";
+import { enhanceBackground } from "../shared/background";
 import { enhancePageEnter } from "@/lib/page-enter";
 import { enhanceGame } from "./game";
 import { enhanceNav } from "./nav";
@@ -14,8 +15,6 @@ const feedLines = [
 ];
 
 function enhanceTerminal(root: HTMLElement) {
-  const browser = window as Window & { __stopCyberRain?: () => void };
-  browser.__stopCyberRain?.();
   const feed = root.querySelector<HTMLElement>(".terminal-feed");
   if (feed) feed.innerHTML = feedLines.map(([prompt, text]) => `<div ${scope} class="feed-line"><span ${scope} class="feed-prompt">${prompt === "> " ? "&gt; " : "= "}</span><span ${scope} class="feed-text">${text}</span></div>`).join("");
   const command = root.querySelector<HTMLElement>(".ph-cmd");
@@ -42,37 +41,7 @@ function enhanceTerminal(root: HTMLElement) {
   };
   update();
   const interval = window.setInterval(update, 1600);
-  const canvas = root.querySelector<HTMLCanvasElement>(".rain-canvas");
-  let frame = 0;
-  let observer: ResizeObserver | undefined;
-  if (canvas && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      let drops: number[] = [];
-      const resize = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; drops = Array.from({ length: Math.ceil(canvas.width / 25) }, () => Math.random() * canvas.height / 16); };
-      resize(); observer = new ResizeObserver(resize); observer.observe(canvas);
-      let tick = 0;
-      const draw = () => {
-        frame = requestAnimationFrame(draw);
-        if (++tick % 4) return;
-        ctx.fillStyle = "rgba(10,8,5,.12)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.font = "13px monospace";
-        const glyphs = "01{}[]<>/;:+-*=XYZ";
-        drops.forEach((d, i) => {
-          for (let trail = 0; trail < 12; trail++) {
-            const fade = 1 - trail / 12;
-            const y = (d * 16 - trail * 16 + canvas.height) % canvas.height;
-            ctx.fillStyle = `rgba(255,176,0,${(.08 + Math.random() * .34) * fade * fade})`;
-            ctx.fillText(glyphs[(i * 5 + trail * 7 + tick) % glyphs.length], i * 25, y);
-          }
-          drops[i] = d * 16 > canvas.height && Math.random() > .965 ? 0 : d + .4;
-        });
-      };
-      canvas.dataset.rainReady = "enhanced";
-      draw();
-    }
-  }
-  return () => { window.clearInterval(interval); cancelAnimationFrame(frame); observer?.disconnect(); };
+  return () => { window.clearInterval(interval); };
 }
 
 function enhanceCipher(root: HTMLElement) {
@@ -114,9 +83,19 @@ export default function ClientEnhancements() {
       if (cyberCleanup.length) return;
       cyberCleanup = [enhanceTerminal(root), enhanceCipher(root), enhanceGame(root)];
     };
+    const app = document.querySelector<HTMLElement>("#app");
+    let disposeBg: (() => void) | null = null;
+    // The shared fixed code-rain backdrop is only drawn for the cyber theme;
+    // the starry home has its own background layers.
+    const syncBackground = () => {
+      if (document.documentElement.dataset.docTheme === "cyber") {
+        if (!disposeBg && app) disposeBg = enhanceBackground(app);
+      } else if (disposeBg) { disposeBg(); disposeBg = null; }
+    };
     const syncTheme = () => {
       if (document.documentElement.dataset.docTheme === "cyber") startCyber();
       else stopCyber();
+      syncBackground();
     };
     window.addEventListener("clone:theme-change", syncTheme);
     // The starry home is server-rendered next to this root, so no markup is passed.
@@ -127,6 +106,7 @@ export default function ClientEnhancements() {
     return () => {
       window.removeEventListener("clone:theme-change", syncTheme);
       stopCyber();
+      disposeBg?.();
       disposeNav();
       disposeEnter();
     };
