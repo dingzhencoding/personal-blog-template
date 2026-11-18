@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { MarkdownPre } from "./Markdown";
 import {
-  ACTIONS_URL, DEV_BRANCH, GH_OWNER, GH_REPO, LOCK_PATH, PUBLISH_BRANCH, TOKEN_CREATE_URL,
+  ACTIONS_URL, DEV_BRANCH, GH_REPO, LOCK_PATH, PUBLISH_BRANCH, TOKEN_CREATE_URL,
   commitAndPublish, decryptAdminLock, encryptAdminLock, fetchAdminLock, listRepoFiles, lockFileContent, readTextFile, validateToken,
   type AdminLock, type FileChange, type RepoFile,
 } from "@/lib/github-content";
@@ -532,14 +532,12 @@ export default function ContentEditor() {
         <a className="content-editor__back" href="/">← 返回首页</a>
         <p className="content-editor__eyebrow">PRIVATE DESK / 作者空间</p>
         <h1>内容管理</h1>
-        <p>输入管理密码解锁。内容会提交到 {GH_OWNER}/{GH_REPO} 的 {DEV_BRANCH} 分支，并自动合并到 {PUBLISH_BRANCH} 触发发布。</p>
         {error && <div className="content-editor__alert" role="alert">{error}</div>}
         <form onSubmit={unlock}>
           <label htmlFor="content-editor-password">管理密码</label>
           <input id="content-editor-password" type="password" autoComplete="current-password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} required disabled={busy} />
           <button type="submit" disabled={busy}>{busy ? "正在解锁…" : "解锁进入"}</button>
         </form>
-        <button type="button" className="content-editor__reset-link" onClick={() => { setPhase("setup"); setError(""); setPatInput(""); setPasswordInput(""); setPasswordConfirm(""); }}>令牌过期或忘记密码？重新设置</button>
       </div>
     </main>
   );
