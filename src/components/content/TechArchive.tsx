@@ -24,7 +24,7 @@ export default function TechArchive({ entries }: { entries: ContentEntry[] }) {
   }, currentYear);
 
   return (
-    <main className="tech-archive">
+    <main className="tech-archive" data-enter-off="">
       <header className="tech-archive__hero" data-enter-hero>
         <BackgroundVideo
           className="tech-archive__hero-video"
