@@ -60,22 +60,6 @@ export function ArticleMarkdown({ source }: { source: string }) {
   );
 }
 
-/** Resume entry body. External links open in a new tab. */
-export function ResumeMarkdown({ source }: { source: string }) {
-  return (
-    <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
-      skipHtml
-      components={{
-        pre: MarkdownPre,
-        a: ({ href, children, node: _node, ...props }) => /^https?:/i.test(href ?? "")
-          ? <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>
-          : <a href={href} {...props}>{children}</a>,
-      }}
-    >{source}</ReactMarkdown>
-  );
-}
-
 /** Life record body. Images open in the timeline lightbox via data-lightbox-src. */
 export function LifeMarkdown({ source }: { source: string }) {
   return (

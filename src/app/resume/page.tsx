@@ -7,11 +7,7 @@ import { loadResume } from "@/lib/content/resume";
 import { pageMetadata } from "@/lib/site";
 
 export function generateMetadata() {
-  const { resume } = loadResume();
-  const description = resume
-    ? [resume.name, resume.roles.join(" / "), resume.summary].filter(Boolean).join(" · ")
-    : "简历 · 求职历程、教育背景与项目经历。";
-  return pageMetadata({ title: resume ? `${resume.name} · 简历` : "简历", description, path: "/resume/", type: "profile" });
+  return pageMetadata({ title: "简历", description: "简历 · PDF 在线预览与下载。", path: "/resume/", type: "profile" });
 }
 
 export default function Resume() {

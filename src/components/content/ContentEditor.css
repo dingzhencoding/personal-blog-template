@@ -119,8 +119,7 @@
 .content-editor__resume-actions .content-editor__publish { border-color: var(--ce-accent); background: var(--ce-accent); color: #07101f; }
 .content-editor__resume-actions .content-editor__publish:hover { filter: brightness(1.13); color: #07101f; }
 .content-editor__resume-actions a { font-size: 13px; }
-.content-editor__resume-md { width: 100%; min-height: 440px; margin-bottom: 16px; border: 1px solid var(--ce-border); border-radius: 9px; padding: 17px; resize: vertical; background: color-mix(in srgb, var(--ce-surface) 55%, #050811); color: var(--ce-text); outline: none; font: 13px/1.75 'JetBrains Mono', Consolas, monospace; tab-size: 2; }
-.content-editor__resume-md:focus { border-color: var(--ce-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ce-accent) 12%, transparent); }
+.content-editor__resume-hint { margin: 14px 0 0; font-size: 12px; line-height: 1.7; color: var(--ce-muted); }
 .content-editor__resume-hint { margin: 14px 0 0 !important; font-size: 12px !important; }
 @media (max-width: 980px) { .content-editor__layout { grid-template-columns: 210px minmax(0, 1fr); } .content-editor__panes { grid-template-columns: 1fr; } .content-editor__preview { min-height: 180px; } }
 @media (max-width: 720px) { .content-editor { padding: 25px 14px 70px; } .content-editor__header { align-items: start; flex-direction: column; } .content-editor__layout { grid-template-columns: 1fr; } .content-editor__sidebar { position: static; } .content-editor__entry-list { display: flex; max-height: none; overflow-x: auto; } .content-editor__entry-list button { flex: 0 0 170px; } .content-editor__work-head, .content-editor__fields, .content-editor__footer { padding-left: 18px; padding-right: 18px; } .content-editor__field-row { grid-template-columns: 1fr; } .content-editor__resume-status, .content-editor__resume-card { padding: 18px; } }

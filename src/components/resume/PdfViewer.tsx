@@ -6,7 +6,6 @@ import type * as PdfJs from "pdfjs-dist";
 type Status = "idle" | "loading" | "ready" | "error";
 
 const vendor = "/vendor/pdfjs";
-export const openPdfEvent = "resume:open-pdf";
 
 let pdfjsPromise: Promise<typeof PdfJs> | null = null;
 function loadPdfJs(): Promise<typeof PdfJs> {
@@ -29,6 +28,8 @@ export default function PdfViewer({ src, autoLoad }: { src: string; autoLoad: bo
   const renderId = useRef(0);
   const [status, setStatus] = useState<Status>("idle");
   const [pageCount, setPageCount] = useState(0);
+  const [current, setCurrent] = useState(1);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
 
   const render = useCallback(async () => {
@@ -123,30 +124,49 @@ export default function PdfViewer({ src, autoLoad }: { src: string; autoLoad: bo
     return () => { observer.disconnect(); window.clearTimeout(timer); renderId.current++; };
   }, [status, render]);
 
-  // Auto-load when scrolled near (PDF-only resumes), or when asked to open.
+  // Auto-load when scrolled near (PDF-only resumes). Check the viewport once
+  // at mount too: IntersectionObserver never fires in hidden tabs.
   useEffect(() => {
-    const open = () => {
-      void load();
-      rootRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
-    };
-    window.addEventListener(openPdfEvent, open);
-    let observer: IntersectionObserver | undefined;
-    if (autoLoad && rootRef.current) {
-      observer = new IntersectionObserver(entries => { if (entries.some(entry => entry.isIntersecting)) { observer?.disconnect(); void load(); } }, { rootMargin: "400px 0px" });
-      observer.observe(rootRef.current);
-    }
-    return () => { window.removeEventListener(openPdfEvent, open); observer?.disconnect(); };
+    if (!autoLoad || !rootRef.current) return;
+    const node = rootRef.current;
+    const rect = node.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 400 && rect.bottom > -400) { void load(); return; }
+    const observer = new IntersectionObserver(entries => { if (entries.some(entry => entry.isIntersecting)) { observer.disconnect(); void load(); } }, { rootMargin: "400px 0px" });
+    observer.observe(node);
+    return () => observer.disconnect();
   }, [autoLoad, load]);
+
+  // Which page is on screen, plus how far the reader scrolled through them.
+  useEffect(() => {
+    if (status !== "ready" || !pagesRef.current) return;
+    const host = pagesRef.current;
+    const update = () => {
+      const frames = Array.from(host.children) as HTMLElement[];
+      if (!frames.length) return;
+      const anchor = window.innerHeight * .5;
+      let index = 0;
+      frames.forEach((frame, i) => { if (frame.getBoundingClientRect().top <= anchor) index = i; });
+      setCurrent(index + 1);
+      const rect = host.getBoundingClientRect();
+      const scrollable = rect.height - window.innerHeight;
+      setProgress(scrollable > 0 ? Math.min(1, Math.max(0, -rect.top / scrollable)) : 1);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => { window.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
+  }, [status]);
 
   useEffect(() => () => { void taskRef.current?.destroy(); }, []);
 
   return (
-    <div className="rs-pdf" ref={rootRef} id="resume-pdf" data-status={status}>
+    <div className="rs-pdf rs-card" ref={rootRef} id="resume-pdf" data-status={status}>
       <div className="rs-pdf-bar">
         <span className="rs-pdf-title"><i aria-hidden="true">▤</i> PDF 简历{pageCount ? ` · 共 ${pageCount} 页` : ""}</span>
+        <span className="rs-pdf-progress" aria-hidden="true"><i style={{ transform: `scaleX(${progress})` }} /></span>
         <span className="rs-pdf-actions">
-          <a href={src} download>下载</a>
-          <a href={src} target="_blank" rel="noopener">新窗口打开</a>
+          {pageCount > 0 && <span className="rs-pdf-current">第 {current} / {pageCount} 页</span>}
+          <a href={src} target="_blank" rel="noopener noreferrer">新窗口打开 ↗</a>
         </span>
       </div>
       {status === "idle" && (
@@ -159,7 +179,7 @@ export default function PdfViewer({ src, autoLoad }: { src: string; autoLoad: bo
       {status === "error" && (
         <div className="rs-pdf-error" role="alert">
           <strong>PDF 预览加载失败</strong>
-          <span>{error || "浏览器暂不支持在线预览"}，可以直接 <a href={src} download>下载 PDF</a> 查看。</span>
+          <span>{error || "浏览器暂不支持在线预览"}，可以 <a href={src} target="_blank" rel="noopener noreferrer">新窗口打开</a> 查看。</span>
         </div>
       )}
       {status === "ready" && <div className="rs-pdf-pages" ref={pagesRef} />}
