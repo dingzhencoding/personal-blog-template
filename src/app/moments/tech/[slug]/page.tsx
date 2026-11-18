@@ -2,6 +2,7 @@
 // theme and the site overrides load here.
 import "@/app/globals.css";
 import { notFound } from "next/navigation";
+import { pageMetadata } from "@/lib/site";
 import ContentSiteShell from "@/components/content/ContentSiteShell";
 import ArticleReader from "@/components/content/ArticleReader";
 import { getPublishedArticle, listEntries } from "@/lib/content/static";
@@ -17,15 +18,10 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const slug = (await params).slug;
   const article = getPublishedArticle(slug);
-  if (!article) return { title: "文章 · 个人博客" };
+  if (!article) return { title: "文章" };
   const path = `/moments/tech/${slug}/`;
   const description = article.summary || `技术学习记录：${article.title}`;
-  return {
-    title: `${article.title} · 技术学习记录`,
-    description,
-    alternates: { canonical: path },
-    openGraph: { type: "article", title: article.title, description, url: path },
-  };
+  return pageMetadata({ title: `${article.title} · 技术学习记录`, description, path, type: "article" });
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {

@@ -66,8 +66,8 @@ export function LifeTimeline({ entries }: { entries: ContentEntry[] }) {
       <header className="life-timeline__hero">
         <BackgroundVideo
           className="life-timeline__hero-video"
-          src="/media/lazy-river-bg.mp4"
-          poster="/media/lazy-river-poster.jpg"
+          src="/media/lazy-river-bg-v2.mp4"
+          poster="/media/lazy-river-poster.webp"
         />
         <div className="life-timeline__hero-shade" aria-hidden="true" />
         <div className="life-timeline__hero-content">
