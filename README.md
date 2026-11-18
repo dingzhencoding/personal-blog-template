@@ -66,7 +66,28 @@ images:
 
 照片继续使用原有图库和点击放大效果，也可以嵌入 Markdown 正文。images 和 cover 必须指向 `public/images/` 中已存在的文件。
 
-技术文章地址为 `/moments/tech/<slug>/`。搜索索引包括标题、标签、摘要和正文。草稿不会生成网页或进入搜索；公开 GitHub 仓库中的草稿源文件仍可被仓库访客读取。
+技术文章地址为 `/moments/tech/<slug>/`。搜索索引包括标题、标签、摘要和正文。草稿不会生成网页或进入搜索；公开 GitHub 仓库中的草稿源文件仍可被仓库访客读取。最新的 7 篇技术文章会依次挂在首页「近期星历」的北斗七星上。
+
+## 简历
+
+简历页 `/resume/` 从 `content/resume/` 读取，两种文件放一种即可：
+
+- `resume.md`：Markdown 简历，页面会渲染成带动效的在线简历（头像光环、职位打字机、数字滚动、随滚动点亮的时间线、目录圆点），也可以直接打印成干净的 A4 版本。
+- `resume.pdf`：PDF 简历。只有 PDF 时页面直接展示 PDF；两者都有时展示 Markdown 版本，并提供「下载 PDF」和「在线查看」。
+
+复制 `content/resume/_example.md` 为 `resume.md`，按模板填写后删除 `draft: true`。写法要点：
+
+- 元数据里填写 `name`、`title`（可以写成列表，会轮播）、`summary`、`location`、`contacts`、`skills`、`stats`；`avatar` 可选，图片放在 `public/images/`。
+- 正文用 `## 工作经历` 这样的二级标题分区；每段经历写成 `### 公司 · 职位 | 2024.07 – 至今`，竖线后面是时间，会显示在卡片右上角。
+- 没有三级标题的分区（如「荣誉与证书」）显示为一张普通卡片。
+
+在线预览 PDF 使用 pdf.js，只在访客打开 PDF 时才下载；构建时 `scripts/prepare-resume.mjs` 会把 PDF 发布到 `/files/resume.pdf`。两个文件都没有时页面显示「简历整理中」。
+
+## 构建说明
+
+- 主题样式由 `scripts/build-theme-css.mjs` 从 `src/styles/theme-source.css` 生成：去掉页面用不到的规则，并按页面拆分（`theme.*.generated.css`，不提交）。`npm run dev` 和 `npm run build` 会自动生成；修改抓取的页面 HTML 后重新运行即可。
+- 首页和抓取页面的大段 HTML 通过 `RawHtml` 组件输出，构建后由 `scripts/finalize-export.mjs` 写入 HTML，避免在内联 RSC 数据里再存一份。站内链接都是整页跳转，请不要为这些页面改用 `next/link`。
+- 站点名称、描述和分享图集中在 `src/lib/site.ts`，修改一处即可全站生效。
 
 ## 背景视频兼容
 
