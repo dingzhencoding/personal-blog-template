@@ -7,8 +7,7 @@ const draft = "content/articles/static-verification-draft.md";
 const newer = "content/life/static-verification-new.md";
 const older = "content/life/static-verification-old.md";
 const image = "public/images/static-verification.png";
-const resume = "content/resume/resume.md";
-const files = [article, draft, newer, older, image, resume];
+const files = [article, draft, newer, older, image];
 
 if (process.argv.includes("--prepare")) {
   assert.ok(files.every((path) => !existsSync(path)), "Verification fixtures must not overwrite existing files");
@@ -18,28 +17,6 @@ if (process.argv.includes("--prepare")) {
   writeFileSync(draft, '---\ntitle: 禁止公开的验证草稿\nslug: static-verification-draft\ndate: "2026-10-08"\ndraft: true\n---\n\nPRIVATE_DRAFT_VERIFICATION\n');
   writeFileSync(newer, '---\ntitle: 验证较新生活记录\nslug: static-verification-new\ndate: "2026-10-08"\nimages: ["/images/static-verification.png"]\n---\n\n新记录\n');
   writeFileSync(older, '---\ntitle: 验证较早生活记录\nslug: static-verification-old\ndate: "2026-10-01"\nimages: ["/images/static-verification.png"]\n---\n\n早期记录\n');
-  writeFileSync(resume, `---
-name: 验证简历
-title: [后端开发, Agent 应用]
-summary: 本地 Markdown 简历验证
-stats:
-  - value: "3+"
-    label: 年经验
-skills:
-  - group: 后端
-    items: [Java, MySQL]
----
-
-## 工作经历
-
-### 验证公司 · 工程师 | 2024.07 – 至今
-
-- **加粗**成果
-
-### 验证实习 | 2023.07 – 2023.12
-
-- 实习内容
-`);
   console.log("Temporary Markdown and image fixtures created.");
 } else if (process.argv.includes("--cleanup")) {
   for (const file of files) if (existsSync(file)) unlinkSync(file);
@@ -98,12 +75,13 @@ skills:
     await page.keyboard.press("Escape");
     assert.equal(await page.locator(".life-timeline__lightbox").count(), 0);
     await page.goto(base + "/resume/");
-    assert.match(await page.locator(".rs-name").textContent(), /验证简历/);
-    assert.equal(await page.locator(".rs-tl-item").count(), 2, "Each ### entry becomes a timeline item");
-    assert.match(await page.locator(".rs-entry-meta").first().textContent(), /2024\.07/);
-    assert.equal(await page.locator(".rs-skill-group li").count(), 2);
-    await page.locator(".rs-tl-item").last().scrollIntoViewIfNeeded();
-    await page.locator(".rs-entry.is-in").last().waitFor();
+    assert.match(await page.locator(".rs-name").textContent(), /个人简历|简历整理中/);
+    const pdfCount = await page.locator(".rs-pdf").count();
+    assert.equal(await page.locator("a[download]").count(), pdfCount, "Exactly one download button, and only when a PDF exists");
+    if (pdfCount) {
+      await page.locator(".rs-pdf-page canvas").first().waitFor({ timeout: 30000 });
+      assert.equal(await page.locator(".rs-pdf-actions a[download]").count(), 0);
+    }
     assert.equal(await page.locator('.VPNavBarMenuLink.active[href="/resume/"]').count(), 1, "Resume nav entry must be active");
     await page.screenshot({ path: "artifacts/static/resume.png", fullPage: true });
     await page.goto(base + "/friends/");

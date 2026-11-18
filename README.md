@@ -31,7 +31,7 @@ npm start
 - 技术文章：`content/articles/*.md`，支持子目录。
 - 生活记录：`content/life/*.md`，支持子目录。
 - 图片：`public/images/`。
-- 两个目录中的 `_example.md` 都是草稿模板，不会发布到网站或搜索中。
+- 文章与生活记录目录中的 `_example.md` 是草稿模板，不会发布到网站或搜索中。
 
 在 GitHub 网页上传时，先选 `codex/static`，进入文章或图片对应的目录，再使用 Add file → Upload files。提交后将 `codex/static` 合并到 `main` 才会发布。技术文章和生活记录都要带下方所示的 YAML 元数据；正文引用 `public/images/photo.jpg` 时，网页路径写 `/images/photo.jpg`。
 
@@ -84,23 +84,14 @@ images:
 - 加密锁文件在公开仓库中可见，密码强度是唯一的保护，请勿使用弱密码；密码和令牌都不会发送到第三方服务器。
 - 上传的图片会压缩成 WebP（GIF 保留动画）存入 `public/images/uploads/`，随记录保存时一并提交。
 - 草稿（`draft: true`）不会出现在网站上，但公开仓库中的草稿源文件仍可被仓库访客读取。
-- 简历 tab 支持上传 / 替换 / 删除 `resume.pdf`，以及编辑 / 从模板创建 / 删除在线 `resume.md`。
+- 简历 tab 支持上传 / 替换 / 删除 `resume.pdf`。
 - 内容格式不正确会导致构建失败，网站保留上一个版本；可在 Actions → Publish static blog 查看日志。
 
 ## 简历
 
-简历页 `/resume/` 从 `content/resume/` 读取，两种文件放一种即可：
+简历页 `/resume/` 只读取 `content/resume/resume.pdf`：有 PDF 时页面提供在线预览、一个「下载 PDF」按钮和「新窗口打开」；没有 PDF 时显示「简历整理中」。
 
-- `resume.md`：Markdown 简历，页面会渲染成带动效的在线简历（头像光环、职位打字机、数字滚动、随滚动点亮的时间线、目录圆点），也可以直接打印成干净的 A4 版本。
-- `resume.pdf`：PDF 简历。只有 PDF 时页面直接展示 PDF；两者都有时展示 Markdown 版本，并提供「下载 PDF」和「在线查看」。
-
-复制 `content/resume/_example.md` 为 `resume.md`，按模板填写后删除 `draft: true`；也可以在 `/write/` 的「简历」tab 直接上传 PDF 或编辑在线简历。写法要点：
-
-- 元数据里填写 `name`、`title`（可以写成列表，会轮播）、`summary`、`location`、`contacts`、`skills`、`stats`；`avatar` 可选，图片放在 `public/images/`。
-- 正文用 `## 工作经历` 这样的二级标题分区；每段经历写成 `### 公司 · 职位 | 2024.07 – 至今`，竖线后面是时间，会显示在卡片右上角。
-- 没有三级标题的分区（如「荣誉与证书」）显示为一张普通卡片。
-
-在线预览 PDF 使用 pdf.js，只在访客打开 PDF 时才下载；构建时 `scripts/prepare-resume.mjs` 会把 PDF 发布到 `/files/resume.pdf`。两个文件都没有时页面显示「简历整理中」。
+在 `/write/` 的「简历」tab 可以直接上传 / 替换 / 删除 PDF，也可以把文件放进 `content/resume/` 后按上面的流程提交。构建时 `scripts/prepare-resume.mjs` 会把 PDF 发布到 `/files/resume.pdf`，并一并发布 pdf.js viewer 与中文字符映射；在线预览只在访客滚动到简历附近时才加载 viewer。
 
 ## 构建说明
 

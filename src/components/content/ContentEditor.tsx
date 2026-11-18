@@ -24,9 +24,7 @@ interface StagedImage { bytes: Uint8Array; objectUrl: string }
 
 const MANAGED_ARTICLE = ["title", "slug", "date", "summary", "tags", "updated", "draft"];
 const MANAGED_MOMENT = [...MANAGED_ARTICLE, "images"];
-const RESUME_MD = "content/resume/resume.md";
 const RESUME_PDF = "content/resume/resume.pdf";
-const RESUME_TEMPLATE = "content/resume/_example.md";
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function beijingParts(): Record<string, string> {
@@ -136,7 +134,6 @@ export default function ContentEditor() {
   const [savedDraft, setSavedDraft] = useState<boolean | null>(null);
   const [form, setForm] = useState<EditorForm>(blankForm);
   const [preserved, setPreserved] = useState<FrontmatterBlock[]>([]);
-  const [resumeText, setResumeText] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -236,7 +233,6 @@ export default function ContentEditor() {
     clearStaged();
     setTab(next);
     setError(""); setNotice("");
-    setResumeText(null);
     updateUrl(next, null);
     if (next === "resume") return;
     resetForm();
@@ -319,7 +315,6 @@ export default function ContentEditor() {
     setFiles([]);
     setEntries([]);
     resetForm();
-    setResumeText(null);
     setLoginPassword("");
     setPwPanelOpen(false);
     setError(""); setNotice("");
@@ -456,47 +451,6 @@ export default function ContentEditor() {
     }
   }
 
-  async function openResumeEditor(fromTemplate: boolean): Promise<void> {
-    if (busy) return;
-    setBusy(true); setError(""); setNotice("");
-    try {
-      const raw = await readTextFile(token, fromTemplate ? RESUME_TEMPLATE : RESUME_MD);
-      if (raw === null) throw new Error(fromTemplate ? "模板文件不存在。" : "resume.md 不存在。");
-      setResumeText(raw);
-    } catch (cause) { setError(errorMessage(cause)); }
-    finally { setBusy(false); }
-  }
-
-  async function saveResume(): Promise<void> {
-    if (resumeText === null || busy) return;
-    const { blocks } = splitDocument(resumeText);
-    if (blocks.length === 0 || !stringField(blocks, "name")) {
-      setError("简历元数据缺少 name 字段，这样构建会失败。请参考模板补齐后再保存。");
-      return;
-    }
-    setBusy(true); setError(""); setNotice("");
-    try {
-      const content = resumeText.endsWith("\n") ? resumeText : `${resumeText}\n`;
-      await commitAndPublish(token, [{ path: RESUME_MD, content }], "更新在线简历");
-      await refreshRepo("resume");
-      setNotice(publishNotice("在线简历已保存。"));
-    } catch (cause) { setError(errorMessage(cause)); }
-    finally { setBusy(false); }
-  }
-
-  async function deleteResumeMd(): Promise<void> {
-    if (busy || !files.some((file) => file.path === RESUME_MD)) return;
-    if (!window.confirm("确定删除在线简历 resume.md 吗？删除后页面将只显示 PDF（若存在）。")) return;
-    setBusy(true); setError(""); setNotice("");
-    try {
-      await commitAndPublish(token, [{ path: RESUME_MD, content: null }], "删除在线简历");
-      await refreshRepo("resume");
-      setResumeText(null);
-      setNotice(publishNotice("在线简历已删除。"));
-    } catch (cause) { setError(errorMessage(cause)); }
-    finally { setBusy(false); }
-  }
-
   async function uploadPdf(event: React.ChangeEvent<HTMLInputElement>): Promise<void> {
     const file = event.target.files?.[0];
     if (!file || busy) return;
@@ -535,9 +489,7 @@ export default function ContentEditor() {
 
   const label = tab === "article" ? "技术学习" : tab === "moment" ? "日常生活" : "简历";
   const backHref = tab === "article" ? "/moments/tech/" : tab === "moment" ? "/moments/life/" : "/resume/";
-  const hasResumeMd = files.some((file) => file.path === RESUME_MD);
   const resumePdf = files.find((file) => file.path === RESUME_PDF);
-  const resumeIsDraft = resumeText !== null && boolField(splitDocument(resumeText).blocks, "draft");
 
   if (phase === "loading") {
     return <main className="content-editor content-editor--center"><p role="status">正在打开内容管理…</p></main>;
@@ -627,9 +579,8 @@ export default function ContentEditor() {
         {tab === "resume" ? (
           <section className="content-editor__resume" aria-label="简历管理">
             <div className="content-editor__resume-status">
-              <span>在线简历 resume.md：<strong>{hasResumeMd ? "已存在" : "未创建"}</strong></span>
               <span>PDF 简历 resume.pdf：<strong>{resumePdf ? `已存在（${resumePdf.size >= 1024 * 1024 ? `${(resumePdf.size / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(resumePdf.size / 1024))} KB`}）` : "未上传"}</strong></span>
-              <p>两者都有时，页面展示在线简历并提供 PDF 下载；只有 PDF 时直接展示 PDF；都没有时显示「简历整理中」。</p>
+              <p>简历页只展示 PDF：上传后在线预览、下载与新窗口查看都会生效；未上传时显示「简历整理中」。</p>
             </div>
 
             <div className="content-editor__resume-card">
@@ -640,34 +591,9 @@ export default function ContentEditor() {
                 <input ref={pdfRef} className="content-editor__file" type="file" accept="application/pdf,.pdf" onChange={uploadPdf} />
                 {resumePdf && <button type="button" className="content-editor__delete" onClick={deletePdf} disabled={busy}>删除 PDF</button>}
                 {resumePdf && <a href="/files/resume.pdf" target="_blank" rel="noopener noreferrer">查看当前线上 PDF ↗</a>}
+                <a href="/resume/" target="_blank" rel="noopener noreferrer">查看线上简历页 ↗</a>
               </div>
-            </div>
-
-            <div className="content-editor__resume-card">
-              <h2>在线简历（Markdown）</h2>
-              {resumeText === null ? (
-                <>
-                  <p>元数据填写 name、title、summary、contacts、skills、stats；正文用 ## 分区、### 经历 | 时间 写时间线。</p>
-                  <div className="content-editor__resume-actions">
-                    {hasResumeMd
-                      ? <button type="button" onClick={() => openResumeEditor(false)} disabled={busy}>{busy ? "正在加载…" : "编辑在线简历"}</button>
-                      : <button type="button" onClick={() => openResumeEditor(true)} disabled={busy}>{busy ? "正在加载…" : "从模板创建"}</button>}
-                    {hasResumeMd && <button type="button" className="content-editor__delete" onClick={deleteResumeMd} disabled={busy}>删除在线简历</button>}
-                    <a href="/resume/" target="_blank" rel="noopener noreferrer">查看线上简历页 ↗</a>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {resumeIsDraft && <div className="content-editor__alert">当前 draft: true —— 网站会显示「简历整理中」。正式发布前请改为 false 或删除这一行。</div>}
-                  <textarea className="content-editor__resume-md" value={resumeText} onChange={(event) => setResumeText(event.target.value)} spellCheck={false} aria-label="简历 Markdown 源文件" />
-                  <div className="content-editor__resume-actions">
-                    <button type="button" className="content-editor__publish" onClick={saveResume} disabled={busy}>{busy ? "正在保存…" : "保存并发布"}</button>
-                    <button type="button" onClick={() => { setResumeText(null); setError(""); setNotice(""); }} disabled={busy}>取消</button>
-                    {hasResumeMd && <button type="button" className="content-editor__delete" onClick={deleteResumeMd} disabled={busy}>删除在线简历</button>}
-                  </div>
-                </>
-              )}
-              <p className="content-editor__resume-hint">格式不正确会导致构建失败，网站会保留上一个版本；保存后可在 Actions 查看构建日志。</p>
+              <p className="content-editor__resume-hint">提交后 GitHub Actions 自动构建约 1–2 分钟生效；构建失败时网站会保留上一个版本。</p>
             </div>
           </section>
         ) : (
