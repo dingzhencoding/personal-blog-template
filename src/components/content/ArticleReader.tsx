@@ -1,28 +1,7 @@
-"use client";
-
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { isValidElement, useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import type { ContentEntry } from "@/lib/content/types";
-import { MermaidPre } from "./MermaidDiagram";
+import ArticleToc, { type HeadingLink } from "./ArticleToc";
+import { ArticleMarkdown, slugForHeading } from "./Markdown";
 import "./ArticleReader.css";
-
-interface HeadingLink {
-  depth: number;
-  title: string;
-  id: string;
-}
-
-function slugForHeading(title: string, used: Map<string, number>): string {
-  const stem = title.toLocaleLowerCase()
-    .replace(/[\p{P}\p{S}]/gu, " ")
-    .trim()
-    .replace(/\s+/g, "-") || "section";
-  const count = used.get(stem) ?? 0;
-  used.set(stem, count + 1);
-  return count ? `${stem}-${count + 1}` : stem;
-}
 
 function stripInlineMarkdown(value: string): string {
   return value
@@ -60,13 +39,6 @@ function extractHeadings(markdown: string): HeadingLink[] {
   return headings;
 }
 
-function nodeText(node: ReactNode): string {
-  if (typeof node === "string" || typeof node === "number") return String(node);
-  if (Array.isArray(node)) return node.map(nodeText).join("");
-  if (isValidElement<{ children?: ReactNode }>(node)) return nodeText(node.props.children);
-  return "";
-}
-
 function publishedDate(entry: ContentEntry): string {
   const raw = entry.publishedAt ?? entry.createdAt;
   const date = new Date(raw);
@@ -78,59 +50,8 @@ function publishedDate(entry: ContentEntry): string {
   return `${pick("year")}-${pick("month")}-${pick("day")}`;
 }
 
-function CodeBlock({ children, ...props }: ComponentPropsWithoutRef<"pre">) {
-  const child = Array.isArray(children) ? children[0] : children;
-  const isMermaid = isValidElement<{ className?: string }>(child)
-    && /language-(?:mermaid|mer)(?:\s|$)/.test(child.props.className ?? "");
-  const preRef = useRef<HTMLPreElement>(null);
-  const [copyState, setCopyState] = useState<"idle" | "ok" | "fail">("idle");
-  const timerRef = useRef<number | undefined>(undefined);
-  useEffect(() => () => window.clearTimeout(timerRef.current), []);
-  if (isMermaid) return <MermaidPre {...props}>{children}</MermaidPre>;
-  const copy = () => {
-    const text = preRef.current?.innerText ?? "";
-    const settle = (state: "ok" | "fail") => {
-      setCopyState(state);
-      window.clearTimeout(timerRef.current);
-      timerRef.current = window.setTimeout(() => setCopyState("idle"), 1600);
-    };
-    navigator.clipboard?.writeText(text).then(() => settle("ok")).catch(() => settle("fail"));
-  };
-  return (
-    <div className="code-block">
-      <button type="button" className="code-block__copy" onClick={copy} aria-label="复制代码">
-        {copyState === "ok" ? "已复制 ✓" : copyState === "fail" ? "复制失败" : "复制"}
-      </button>
-      <pre ref={preRef} {...props}>{children}</pre>
-    </div>
-  );
-}
-
 export default function ArticleReader({ entry }: { entry: ContentEntry }) {
   const headings = extractHeadings(entry.bodyMd);
-  const headingIds = headings.map(item => item.id).join(",");
-  const [activeId, setActiveId] = useState("");
-  useEffect(() => {
-    const ids = headingIds ? headingIds.split(",") : [];
-    const nodes = ids.map(id => document.getElementById(id)).filter((node): node is HTMLElement => node !== null);
-    if (!nodes.length) return;
-    const observer = new IntersectionObserver(
-      entries => {
-        for (const item of entries) if (item.isIntersecting) { setActiveId(item.target.id); break; }
-      },
-      { rootMargin: "-96px 0px -68% 0px" },
-    );
-    nodes.forEach(node => observer.observe(node));
-    return () => observer.disconnect();
-  }, [headingIds]);
-  const renderedHeadings = new Map<string, number>();
-  const heading = (depth: number, children: ReactNode) => {
-    const title = nodeText(children).trim();
-    const id = slugForHeading(title, renderedHeadings);
-    const Tag = `h${depth}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
-    return <Tag id={id}>{children}</Tag>;
-  };
-
   return (
     <main className="article-reader">
       <div className="article-reader__container">
@@ -151,19 +72,7 @@ export default function ArticleReader({ entry }: { entry: ContentEntry }) {
             </header>
 
             <div className="article-reader__prose">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                skipHtml
-                components={{
-                  pre: CodeBlock,
-                  h1: ({ children }) => heading(1, children),
-                  h2: ({ children }) => heading(2, children),
-                  h3: ({ children }) => heading(3, children),
-                  h4: ({ children }) => heading(4, children),
-                  h5: ({ children }) => heading(5, children),
-                  h6: ({ children }) => heading(6, children),
-                }}
-              >{entry.bodyMd}</ReactMarkdown>
+              <ArticleMarkdown source={entry.bodyMd} />
               <div className="article-reader__endmark" aria-hidden="true">✦</div>
             </div>
           </article>
@@ -171,23 +80,7 @@ export default function ArticleReader({ entry }: { entry: ContentEntry }) {
           <a className="article-reader__back" href="/moments/tech/"><span aria-hidden="true">←</span> 返回文章列表</a>
         </div>
 
-        <aside className="article-reader__toc" aria-label="文章目录">
-          <div className="article-reader__toc-inner">
-            <p className="article-reader__toc-title">{entry.title}</p>
-            {headings.length > 0 ? (
-              <nav>
-                {headings.map((item) => (
-                  <a
-                    className={`article-reader__toc-link article-reader__toc-link--depth-${item.depth}${activeId === item.id ? " is-active" : ""}`}
-                    href={`#${item.id}`}
-                    aria-current={activeId === item.id ? "location" : undefined}
-                    key={item.id}
-                  >{item.title}</a>
-                ))}
-              </nav>
-            ) : <p className="article-reader__toc-empty">这篇文章暂无小标题</p>}
-          </div>
-        </aside>
+        <ArticleToc title={entry.title} headings={headings} />
       </div>
     </main>
   );

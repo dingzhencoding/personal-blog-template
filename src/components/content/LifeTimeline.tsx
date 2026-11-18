@@ -1,8 +1,7 @@
 "use client";
 
+import type { MouseEvent, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import type { ContentEntry } from "../../lib/content/types";
 import BackgroundVideo from "./BackgroundVideo";
 import "./LifeTimeline.css";
@@ -25,7 +24,8 @@ function formatDate(value: string): string {
   }).format(date);
 }
 
-export function LifeTimeline({ entries }: { entries: ContentEntry[] }) {
+/** `bodies` holds each entry's Markdown, rendered on the server, keyed by id. */
+export function LifeTimeline({ entries, bodies }: { entries: ContentEntry[]; bodies: Record<number, ReactNode> }) {
   const [sortOrder, setSortOrder] = useState<SortOrder>("newest");
   const [lightbox, setLightbox] = useState<LightboxImage | null>(null);
 
@@ -60,6 +60,11 @@ export function LifeTimeline({ entries }: { entries: ContentEntry[] }) {
       document.body.style.overflow = previousOverflow;
     };
   }, [lightbox]);
+
+  const openInlineImage = (event: MouseEvent<HTMLDivElement>) => {
+    const trigger = (event.target as HTMLElement).closest<HTMLElement>("[data-lightbox-src]");
+    if (trigger?.dataset.lightboxSrc) setLightbox({ src: trigger.dataset.lightboxSrc, alt: trigger.dataset.lightboxAlt || "记录图片" });
+  };
 
   return (
     <section className="life-timeline" aria-label="日常生活记录">
@@ -121,28 +126,7 @@ export function LifeTimeline({ entries }: { entries: ContentEntry[] }) {
                   {formatDate(entryDate(entry))}
                 </time>
                 {entry.title && <h2>{entry.title}</h2>}
-                <div className="life-timeline__markdown">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      img: ({ src, alt }) => {
-                        if (typeof src !== "string" || !src) return null;
-                        return (
-                          <button
-                            className="life-timeline__inline-image"
-                            type="button"
-                            aria-label={`查看图片：${alt || "记录图片"}`}
-                            onClick={() => setLightbox({ src, alt: alt || "记录图片" })}
-                          >
-                            <img src={src} alt={alt || "记录图片"} loading="lazy" />
-                          </button>
-                        );
-                      },
-                    }}
-                  >
-                    {entry.bodyMd}
-                  </ReactMarkdown>
-                </div>
+                <div className="life-timeline__markdown" onClick={openInlineImage}>{bodies[entry.id]}</div>
                 {entry.imageUrls.length > 0 && (
                   <div className="life-timeline__images" aria-label="记录图片">
                     {entry.imageUrls.map((src, index) => {

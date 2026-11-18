@@ -1,6 +1,6 @@
 "use client";
 
-import { isValidElement, useEffect, useId, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import "./MermaidDiagram.css";
 
 let configured = false;
@@ -58,16 +58,4 @@ export default function MermaidDiagram({ chart }: { chart: string }) {
       {svg ? <div className="mermaid-diagram__canvas" dangerouslySetInnerHTML={{ __html: svg }} /> : <span className="mermaid-diagram__loading">正在绘制图表…</span>}
     </div>
   );
-}
-
-export function MermaidPre({ children, ...props }: ComponentPropsWithoutRef<"pre">) {
-  const child = Array.isArray(children) ? children[0] : children;
-  if (isValidElement<{ className?: string; children?: ReactNode }>(child)) {
-    const className = child.props.className ?? "";
-    if (/language-(?:mermaid|mer)(?:\s|$)/.test(className)) {
-      const chart = String(child.props.children ?? "").replace(/\n$/, "");
-      return <MermaidDiagram chart={chart} />;
-    }
-  }
-  return <pre {...props}>{children}</pre>;
 }

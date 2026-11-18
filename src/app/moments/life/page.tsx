@@ -4,6 +4,7 @@ import "@/app/globals.css";
 import { pageMetadata } from "@/lib/site";
 import ContentSiteShell from "@/components/content/ContentSiteShell";
 import { LifeTimeline } from "@/components/content/LifeTimeline";
+import { LifeMarkdown } from "@/components/content/Markdown";
 import { listEntries } from "@/lib/content/static";
 
 export const metadata = pageMetadata({
@@ -15,6 +16,6 @@ export const metadata = pageMetadata({
 export default function LifePage() {
   const entries = listEntries("moment");
   return <ContentSiteShell path="/moments/life/">
-    <LifeTimeline entries={entries} />
+    <LifeTimeline entries={entries} bodies={Object.fromEntries(entries.map(entry => [entry.id, <LifeMarkdown key={entry.id} source={entry.bodyMd} />]))} />
   </ContentSiteShell>;
 }

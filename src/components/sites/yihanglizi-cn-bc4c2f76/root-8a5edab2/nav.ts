@@ -87,6 +87,23 @@ function paintGalaxy(container: HTMLElement) {
   const dipperPanel=container.querySelector<HTMLElement>(".dipper-panel");
   const dipperCursor=container.querySelector<SVGCircleElement>(".dipper-cursor");
   let activeDipper=0, dipperSwap=0, dipperAnimation:Animation|null=null;
+  // Each Dipper star links one recent article (newest first) once the index loads.
+  let recentDocs:Array<{title:string;href:string}>=[];
+  const fillDipperDoc=(index:number)=>{
+    const doc=recentDocs[index];
+    const card=dipperPanel?.querySelector<HTMLElement>(".dp-card");
+    if(!doc||!card)return;
+    const title=card.querySelector<HTMLElement>(".dp-doc-title");
+    const go=card.querySelector<HTMLAnchorElement>(".dp-go");
+    if(title)title.textContent=doc.title;
+    if(go)go.href=doc.href;
+  };
+  let recentDocsCancelled=false;
+  void fetch("/search-index.json",{cache:"force-cache"}).then(response=>response.ok?response.json():null).then((payload:{entries?:Array<{type?:string;slug?:string;title?:string}>}|null)=>{
+    if(recentDocsCancelled||!Array.isArray(payload?.entries))return;
+    recentDocs=payload.entries.filter(entry=>entry.type==="article"&&entry.slug&&entry.title).slice(0,7).map(entry=>({title:entry.title!,href:`/moments/tech/${entry.slug}/`}));
+    fillDipperDoc(activeDipper);
+  }).catch(()=>{});
   const selectDipper=(index:number)=>{
     if(index===activeDipper)return;
     activeDipper=index;
@@ -98,7 +115,7 @@ function paintGalaxy(container: HTMLElement) {
     dipperAnimation?.cancel();
     const nextCard=dipperStates[index].replace(/\sdip-swap-[^"\s]+/g, "");
     const oldCard=dipperPanel.querySelector<HTMLElement>(".dp-card");
-    if(window.matchMedia("(prefers-reduced-motion: reduce)").matches||!oldCard){dipperPanel.innerHTML=nextCard;return;}
+    if(window.matchMedia("(prefers-reduced-motion: reduce)").matches||!oldCard){dipperPanel.innerHTML=nextCard;fillDipperDoc(index);return;}
     const leave=oldCard.animate(
       [{opacity:1,transform:"translate(0) scale(1)"},{opacity:0,transform:"translate(-14px) scale(.985)"}],
       {duration:300,easing:"ease"},
@@ -107,6 +124,7 @@ function paintGalaxy(container: HTMLElement) {
     void leave.finished.then(()=>{
       if(swap!==dipperSwap)return;
       dipperPanel.innerHTML=nextCard;
+      fillDipperDoc(index);
       const newCard=dipperPanel.querySelector<HTMLElement>(".dp-card");
       if(!newCard)return;
       const enter=newCard.animate(
@@ -219,7 +237,7 @@ function paintGalaxy(container: HTMLElement) {
   const toggleZodiacSound=()=>{wheelMuted=!wheelMuted;zodiacSound?.classList.toggle("off",wheelMuted);if(zodiacSound){zodiacSound.title=wheelMuted?"开启轮盘音效":"关闭轮盘音效";const icon=zodiacSound.querySelector("span");if(icon)icon.textContent=wheelMuted?"🔇":"🔊";}if(!wheelMuted)playZodiacTone("triangle",784,.1,.06);};
   spin?.addEventListener("click",turn);
   zodiacSound?.addEventListener("click",toggleZodiacSound);
-  return ()=>{window.clearInterval(clockInterval);cosmicCancelled=true;disposeCosmic();window.cancelAnimationFrame(wheelFrame);window.clearTimeout(pointerTimer);void zodiacAudioContext?.close();dipperSwap++;dipperAnimation?.cancel();buttons[0]?.removeEventListener("click",scrollGalaxy);buttons[1]?.removeEventListener("click",scrollGame);dipperListeners.forEach(fn=>fn());zodiacListeners.forEach(fn=>fn());spin?.removeEventListener("click",turn);zodiacSound?.removeEventListener("click",toggleZodiacSound);};
+  return ()=>{window.clearInterval(clockInterval);cosmicCancelled=true;recentDocsCancelled=true;disposeCosmic();window.cancelAnimationFrame(wheelFrame);window.clearTimeout(pointerTimer);void zodiacAudioContext?.close();dipperSwap++;dipperAnimation?.cancel();buttons[0]?.removeEventListener("click",scrollGalaxy);buttons[1]?.removeEventListener("click",scrollGame);dipperListeners.forEach(fn=>fn());zodiacListeners.forEach(fn=>fn());spin?.removeEventListener("click",turn);zodiacSound?.removeEventListener("click",toggleZodiacSound);};
 }
 
 export function enhanceNav(root: HTMLElement, starMarkup: string) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 const SPRITE = "/sites/yihanglizi-cn-bc4c2f76/shared/img/cat-sprite.png";
 const MEOWS = [1, 2, 3].map(
@@ -41,6 +41,13 @@ export default function CatPet() {
   const shadowRef = useRef<HTMLSpanElement>(null);
   const [bubble, setBubble] = useState<string | null>(null);
   const [helpVisible, setHelpVisible] = useState(false);
+  // The shortcut label shrinks to a small "?" once it has been seen, so it
+  // stops covering page controls in the bottom-right corner.
+  const [hintCompact, setHintCompact] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setHintCompact(true), 6000);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useLayoutEffect(() => {
     const stage = stageRef.current;
@@ -395,12 +402,15 @@ export default function CatPet() {
     <div className="catpet">
       <button
         type="button"
-        className="cp-shortcut"
+        className={`cp-shortcut${hintCompact && !helpVisible ? " is-compact" : ""}`}
         aria-expanded={helpVisible}
+        aria-label="猫咪操作指南（Shift + H）"
         onClick={() => setHelpVisible(value => !value)}
-        title="打开猫咪操作指南"
+        title="猫咪操作指南（Shift + H）"
       >
-        <kbd>Shift</kbd><span>+</span><kbd>H</kbd><span>猫咪指南</span>
+        {hintCompact && !helpVisible
+          ? <span className="cp-shortcut-q" aria-hidden="true">?</span>
+          : <><kbd>Shift</kbd><span>+</span><kbd>H</kbd><span>猫咪指南</span></>}
       </button>
       <div ref={stageRef} className="cp-stage">
         {bubble && <div className="cp-bubble">{bubble}</div>}
