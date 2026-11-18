@@ -68,18 +68,19 @@ export function LifeTimeline({ entries, bodies }: { entries: ContentEntry[]; bod
 
   return (
     <section className="life-timeline" aria-label="日常生活记录">
-      <header className="life-timeline__hero">
+      <header className="life-timeline__hero" data-enter-hero>
         <BackgroundVideo
           className="life-timeline__hero-video"
           src="/media/lazy-river-bg-v2.mp4"
           poster="/media/lazy-river-poster.webp"
         />
         <div className="life-timeline__hero-shade" aria-hidden="true" />
+        <div className="page-aurora page-aurora--soft" aria-hidden="true"><i /><i /><i /></div>
         <div className="life-timeline__hero-content">
-          <span className="life-timeline__eyebrow">🌿 LIFE</span>
-          <h1>日常生活记录</h1>
-          <p>把日子里值得留住的片刻，慢慢记下来。</p>
-          <div className="life-timeline__stats" aria-label="日常生活记录统计">
+          <span className="life-timeline__eyebrow" data-reveal>🌿 LIFE</span>
+          <h1 data-reveal>日常生活记录</h1>
+          <p data-reveal>把日子里值得留住的片刻，慢慢记下来。</p>
+          <div className="life-timeline__stats" data-reveal aria-label="日常生活记录统计">
             <span><strong>{visibleEntries.length}</strong> 条记录</span>
             <i aria-hidden="true" />
             <span>持续 <strong>更新中</strong></span>
@@ -90,7 +91,7 @@ export function LifeTimeline({ entries, bodies }: { entries: ContentEntry[]; bod
         <div className="life-timeline__hero-fade" aria-hidden="true" />
       </header>
 
-      <div className="life-timeline__toolbar">
+      <div className="life-timeline__toolbar" data-reveal>
         <div className="life-timeline__sort" role="group" aria-label="记录排序">
           <button
             type="button"
@@ -112,7 +113,7 @@ export function LifeTimeline({ entries, bodies }: { entries: ContentEntry[]; bod
       </div>
 
       {visibleEntries.length === 0 ? (
-        <div className="life-timeline__empty" role="status">
+        <div className="life-timeline__empty" role="status" data-reveal>
           <span aria-hidden="true">✦</span>
           <h2>还没有生活记录</h2>
           <p>写下第一条生活记录，它会出现在这里。</p>
@@ -120,7 +121,7 @@ export function LifeTimeline({ entries, bodies }: { entries: ContentEntry[]; bod
       ) : (
         <ol className="life-timeline__list">
           {visibleEntries.map((entry) => (
-            <li className="life-timeline__item" id={`moment-${entry.id}`} key={entry.id}>
+            <li className="life-timeline__item" data-reveal id={`moment-${entry.id}`} key={entry.id}>
               <article className="life-timeline__card">
                 <time className="life-timeline__date" dateTime={entryDate(entry)}>
                   {formatDate(entryDate(entry))}

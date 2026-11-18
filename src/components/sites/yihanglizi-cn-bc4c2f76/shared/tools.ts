@@ -1,4 +1,5 @@
 import sourceTools from "./tools-data.json";
+import { enhancePageEnter } from "@/lib/page-enter";
 
 type Tool = (typeof sourceTools)[number];
 type IconName = Tool["features"][number]["icon"] | Tool["runtime"][number]["icon"] |
@@ -57,13 +58,14 @@ function logo(tool: Tool, large = false): string {
 
 function renderList(): string {
   return `<section ${scope}>
-    <header class="hero" ${scope}>
-      <div class="hero-badge" ${scope}>国产 AI 编程工具</div>
-      <h1 class="hero-title" ${scope}>国产 AI 编程 Agent 薅羊毛指南</h1>
-      <p class="hero-sub" ${scope}>一站式盘点当下最热门的国产 AI 编程助手，逐个对比能力边界、运行形态与下载方式，帮你找到最顺手的那一个。</p>
-      <div class="hero-meta" ${scope}><span ${scope}><b ${scope}>${tools.length}</b> 款精选工具</span><span class="dot" ${scope}></span><span ${scope}>GUI / CLI / IDE 全覆盖</span><span class="dot" ${scope}></span><span ${scope}>持续更新</span></div>
+    <header class="hero" data-enter-hero ${scope}>
+      <div class="page-aurora" aria-hidden="true" ${scope}><i ${scope}></i><i ${scope}></i><i ${scope}></i></div>
+      <div class="hero-badge" data-reveal ${scope}>国产 AI 编程工具</div>
+      <h1 class="hero-title" data-reveal ${scope}>国产 AI 编程 Agent 薅羊毛指南</h1>
+      <p class="hero-sub" data-reveal ${scope}>一站式盘点当下最热门的国产 AI 编程助手，逐个对比能力边界、运行形态与下载方式，帮你找到最顺手的那一个。</p>
+      <div class="hero-meta" data-reveal ${scope}><span ${scope}><b ${scope}>${tools.length}</b> 款精选工具</span><span class="dot" ${scope}></span><span ${scope}>GUI / CLI / IDE 全覆盖</span><span class="dot" ${scope}></span><span ${scope}>持续更新</span></div>
     </header>
-    <div class="grid" ${scope}>${tools.map((tool, index) => `<article class="card" tabindex="0" role="button" data-tool-index="${index}" style="--accent:${tool.accent};--accent-soft:${tool.accentSoft};" ${scope}>
+    <div class="grid" ${scope}>${tools.map((tool, index) => `<article class="card" data-reveal tabindex="0" role="button" data-tool-index="${index}" style="--accent:${tool.accent};--accent-soft:${tool.accentSoft};" ${scope}>
       <div class="card-glow" ${scope}></div><div class="card-head" ${scope}>${logo(tool)}<div class="card-titles" ${scope}><h3 ${scope}>${esc(tool.name)}</h3><p ${scope}>${esc(tool.company)}</p></div></div>
       <p class="card-desc" ${scope}>${esc(tool.description)}</p><div class="card-foot" ${scope}>${tool.badges.map(badge => `<span class="tag" ${scope}>${esc(badge)}</span>`).join("")}<span class="more" ${scope}>查看详情 →</span></div>
     </article>`).join("")}</div>
@@ -80,17 +82,17 @@ function platformIcon(os: string): IconName {
 
 function renderDetail(tool: Tool, index: number): string {
   return `<section class="detail" ${scope}>
-    <button class="back" type="button" data-tools-back ${scope}>${svg("arrow-left")}<span ${scope}>返回工具列表</span></button>
-    <header class="d-hero" style="--accent:${tool.accent};--accent-soft:${tool.accentSoft};" ${scope}>
-      <div class="d-head" ${scope}>${logo(tool, true)}<div ${scope}><div class="d-tags" ${scope}>${tool.badges.map(badge => `<span class="tag" ${scope}>${esc(badge)}</span>`).join("")}</div><h1 ${scope}>${esc(tool.name)}</h1><p class="d-company" ${scope}><span class="co-label" ${scope}>厂商</span>${esc(tool.company)}</p></div></div>
-      <p class="d-desc" ${scope}>${esc(tool.description)}</p>
-      <div class="stats" ${scope}>${tool.quickStats.map(stat => `<div class="stat" ${scope}><b ${scope}>${esc(stat.value)}</b><span ${scope}>${esc(stat.label)}</span></div>`).join("")}</div>
-      <div class="showcase" ${scope}><img src="${assetRoot}${esc(tool.showcase)}" alt="${esc(tool.name)} 界面预览" ${scope}></div>
+    <button class="back" type="button" data-tools-back data-reveal ${scope}>${svg("arrow-left")}<span ${scope}>返回工具列表</span></button>
+    <header class="d-hero" data-enter-hero style="--accent:${tool.accent};--accent-soft:${tool.accentSoft};" ${scope}>
+      <div class="d-head" data-reveal ${scope}>${logo(tool, true)}<div ${scope}><div class="d-tags" ${scope}>${tool.badges.map(badge => `<span class="tag" ${scope}>${esc(badge)}</span>`).join("")}</div><h1 ${scope}>${esc(tool.name)}</h1><p class="d-company" ${scope}><span class="co-label" ${scope}>厂商</span>${esc(tool.company)}</p></div></div>
+      <p class="d-desc" data-reveal ${scope}>${esc(tool.description)}</p>
+      <div class="stats" data-reveal ${scope}>${tool.quickStats.map(stat => `<div class="stat" ${scope}><b ${scope}>${esc(stat.value)}</b><span ${scope}>${esc(stat.label)}</span></div>`).join("")}</div>
+      <div class="showcase" data-reveal ${scope}><img src="${assetRoot}${esc(tool.showcase)}" alt="${esc(tool.name)} 界面预览" ${scope}></div>
     </header>
-    <div class="d-section" ${scope}><h2 ${scope}>${svg("download")} 获取方式</h2><div class="dl-card" ${scope}><div class="dl-urls" ${scope}><span class="dl-label" ${scope}>官方地址</span>${tool.downloadUrls.map(url => `<a href="https://${esc(url.replace(/^https?:\/\//, ""))}" target="_blank" rel="noopener noreferrer" class="url-chip" ${scope}>${svg("external")}${esc(url)}</a>`).join("")}</div><a class="cta" href="${esc(tool.ctaUrl)}" target="_blank" rel="noopener noreferrer" ${scope}>${svg("download")} ${esc(tool.ctaText)}</a></div><div class="platforms" ${scope}><span class="dl-label" ${scope}>支持平台</span>${tool.platforms.map(platform => `<span class="plat" ${scope}>${svg(platformIcon(platform.os))}${esc(platform.label)}</span>`).join("")}</div></div>
-    <div class="d-section" ${scope}><h2 ${scope}>${svg("cpu")} 运行形态</h2><div class="runtime" ${scope}>${tool.runtime.map(item => `<div class="rt ${item.level}" ${scope}><div class="rt-ic" ${scope}>${svg(item.icon)}</div><div class="rt-body" ${scope}><div class="rt-top" ${scope}><h4 ${scope}>${esc(item.title)}</h4><span class="rt-level ${item.level}" ${scope}>${svg(item.level === "full" ? "check" : "alert")} ${item.level === "full" ? "完整支持" : "部分支持"}</span></div><p class="rt-sub" ${scope}>${esc(item.subtitle)}</p><p class="rt-desc" ${scope}>${esc(item.desc)}</p></div></div>`).join("")}</div></div>
-    <div class="d-section" ${scope}><h2 ${scope}>${svg("sparkles")} 核心能力</h2><div class="features" ${scope}>${tool.features.map(feature => `<div class="feat" ${scope}><div class="feat-ic" ${scope}>${svg(feature.icon)}</div><h4 ${scope}>${esc(feature.title)}</h4><p ${scope}>${esc(feature.desc)}</p></div>`).join("")}</div></div>
-    <nav class="pager" aria-label="工具详情翻页" ${scope}><button type="button" data-tools-page="${(index - 1 + tools.length) % tools.length}" ${scope}>${svg("arrow-left")}<span ${scope}>上一个</span></button><button type="button" data-tools-page="${(index + 1) % tools.length}" ${scope}><span ${scope}>下一个</span>${svg("arrow-right")}</button></nav>
+    <div class="d-section" data-reveal ${scope}><h2 ${scope}>${svg("download")} 获取方式</h2><div class="dl-card" ${scope}><div class="dl-urls" ${scope}><span class="dl-label" ${scope}>官方地址</span>${tool.downloadUrls.map(url => `<a href="https://${esc(url.replace(/^https?:\/\//, ""))}" target="_blank" rel="noopener noreferrer" class="url-chip" ${scope}>${svg("external")}${esc(url)}</a>`).join("")}</div><a class="cta" href="${esc(tool.ctaUrl)}" target="_blank" rel="noopener noreferrer" ${scope}>${svg("download")} ${esc(tool.ctaText)}</a></div><div class="platforms" ${scope}><span class="dl-label" ${scope}>支持平台</span>${tool.platforms.map(platform => `<span class="plat" ${scope}>${svg(platformIcon(platform.os))}${esc(platform.label)}</span>`).join("")}</div></div>
+    <div class="d-section" data-reveal ${scope}><h2 ${scope}>${svg("cpu")} 运行形态</h2><div class="runtime" ${scope}>${tool.runtime.map(item => `<div class="rt ${item.level}" ${scope}><div class="rt-ic" ${scope}>${svg(item.icon)}</div><div class="rt-body" ${scope}><div class="rt-top" ${scope}><h4 ${scope}>${esc(item.title)}</h4><span class="rt-level ${item.level}" ${scope}>${svg(item.level === "full" ? "check" : "alert")} ${item.level === "full" ? "完整支持" : "部分支持"}</span></div><p class="rt-sub" ${scope}>${esc(item.subtitle)}</p><p class="rt-desc" ${scope}>${esc(item.desc)}</p></div></div>`).join("")}</div></div>
+    <div class="d-section" data-reveal ${scope}><h2 ${scope}>${svg("sparkles")} 核心能力</h2><div class="features" ${scope}>${tool.features.map(feature => `<div class="feat" ${scope}><div class="feat-ic" ${scope}>${svg(feature.icon)}</div><h4 ${scope}>${esc(feature.title)}</h4><p ${scope}>${esc(feature.desc)}</p></div>`).join("")}</div></div>
+    <nav class="pager" aria-label="工具详情翻页" data-reveal ${scope}><button type="button" data-tools-page="${(index - 1 + tools.length) % tools.length}" ${scope}>${svg("arrow-left")}<span ${scope}>上一个</span></button><button type="button" data-tools-page="${(index + 1) % tools.length}" ${scope}><span ${scope}>下一个</span>${svg("arrow-right")}</button></nav>
   </section>`;
 }
 
@@ -110,14 +112,18 @@ export function enhanceTools(root: HTMLElement): () => void {
     image.src = src;
   };
 
+  let disposeReveal: () => void = () => {};
+  const reveal = () => { disposeReveal(); disposeReveal = enhancePageEnter(host); };
   const showList = () => {
     selected = -1;
     host.innerHTML = renderList();
+    reveal();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const showDetail = (index: number) => {
     selected = (index + tools.length) % tools.length;
     host.innerHTML = renderDetail(tools[selected], selected);
+    reveal();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const onClick = (event: Event) => {
@@ -146,6 +152,7 @@ export function enhanceTools(root: HTMLElement): () => void {
   host.addEventListener("focusin", onIntent);
   showList();
   return () => {
+    disposeReveal();
     host.removeEventListener("click", onClick);
     host.removeEventListener("keydown", onKeyDown);
     host.removeEventListener("pointerover", onIntent);

@@ -56,28 +56,28 @@ export default function ArticleReader({ entry }: { entry: ContentEntry }) {
     <main className="article-reader">
       <div className="article-reader__container">
         <div className="article-reader__main">
-          <nav className="article-reader__breadcrumb" aria-label="当前位置">
+          <nav className="article-reader__breadcrumb" aria-label="当前位置" data-reveal>
             <a href="/moments/tech/">技术学习记录</a><span aria-hidden="true">/</span><span>{entry.title}</span>
           </nav>
 
           <article>
-            <header className="article-reader__hero">
-              <p className="article-reader__eyebrow">TECH JOURNAL · 技术学习</p>
-              <h1>{entry.title}</h1>
-              {entry.summary && <p className="article-reader__summary">{entry.summary}</p>}
-              <div className="article-reader__meta">
+            <header className="article-reader__hero" data-enter-hero>
+              <p className="article-reader__eyebrow" data-reveal>TECH JOURNAL · 技术学习</p>
+              <h1 data-reveal>{entry.title}</h1>
+              {entry.summary && <p className="article-reader__summary" data-reveal>{entry.summary}</p>}
+              <div className="article-reader__meta" data-reveal>
                 <time dateTime={entry.publishedAt ?? entry.createdAt}>发布于 {publishedDate(entry)}</time>
                 {entry.tags.length > 0 && <ul aria-label="文章标签">{entry.tags.map((tag) => <li key={tag}>{tag}</li>)}</ul>}
               </div>
             </header>
 
-            <div className="article-reader__prose">
+            <div className="article-reader__prose" data-reveal>
               <ArticleMarkdown source={entry.bodyMd} />
               <div className="article-reader__endmark" aria-hidden="true">✦</div>
             </div>
           </article>
 
-          <a className="article-reader__back" href="/moments/tech/"><span aria-hidden="true">←</span> 返回文章列表</a>
+          <a className="article-reader__back" href="/moments/tech/" data-reveal><span aria-hidden="true">←</span> 返回文章列表</a>
         </div>
 
         <ArticleToc title={entry.title} headings={headings} />

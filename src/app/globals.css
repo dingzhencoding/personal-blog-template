@@ -38,11 +38,41 @@ html[data-doc-theme=starry] .slh{background:linear-gradient(180deg,rgba(15,20,43
 .hv .capture-frame{transform:scale(1.12) translateY(-3.5%)}
 .moments-header .capture-frame{transform:scale(1.5) translateY(-10%);filter:blur(9px) brightness(.8)}
 .moments-header video.moments-header-video{object-position:center center;filter:none}
-/* The source reveals these blocks with Vue scroll observers. Static pages need their final state. */
+/* The source reveals these blocks with Vue scroll observers. When the entrance
+   effect is off (no JS / reduced motion) static pages need their final state. */
 .friends-page .boot-overlay{display:none!important}
-.friends-page .section-head,.friends-page .owner-card,.friends-page .friend-card,.friends-page .apply-card,
+html:not([data-page-enter=on]) :is(.friends-page .section-head,.friends-page .owner-card,.friends-page .friend-card,.friends-page .apply-card,
 .resume-page .tl-item,
-.about-page .stats,.about-page .section-head,.about-page .identity-text,.about-page .identity-card,.about-page .marquee,.about-page .skill-card,.about-page .project-card,.about-page .timeline-item,.about-page .contact-card,.about-page .contact-cta,.about-page .footer-quote,.about-page .footer-meta{opacity:1!important;transform:none!important}
+.about-page .stats,.about-page .section-head,.about-page .identity-text,.about-page .identity-card,.about-page .marquee,.about-page .skill-card,.about-page .project-card,.about-page .timeline-item,.about-page .contact-card,.about-page .contact-cta,.about-page .footer-quote,.about-page .footer-meta){opacity:1!important;transform:none!important}
+
+/* ---- Shared page entrance: gradient wash first, then copy floats in ---------
+   Same language as the resume hero. The layout sets data-page-enter before
+   first paint; enhancePageEnter staggers --enter-i and reveals on intersection.
+   translate/filter are used instead of transform so card hover lifts survive. */
+html[data-page-enter=on] [data-reveal]:not(.rs *){opacity:0;translate:0 22px;filter:blur(6px)}
+html[data-page-enter=on] [data-reveal].is-in:not(.rs *){opacity:1;translate:0 0;filter:none;animation:page-enter-in .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(120ms + var(--enter-i,0) * 90ms)}
+@keyframes page-enter-in{from{opacity:0;translate:0 22px;filter:blur(6px)}to{opacity:1;translate:0 0;filter:none}}
+@media (prefers-reduced-motion:reduce){html[data-page-enter=on] [data-reveal]:not(.rs *){opacity:1;translate:none;filter:none;animation:none}}
+
+/* Drifting aurora blobs behind hero copy, tinted by the active theme. */
+.page-aurora{--aurora-max:.7;--aurora-third:var(--clone-aurora-third,#ffd28a);position:absolute;inset:-30%;z-index:0;filter:blur(60px);opacity:0;pointer-events:none;animation:page-aurora-in 1.4s ease-out .1s forwards}
+.page-aurora--soft{--aurora-max:.45}
+html:not([data-page-enter=on]) .page-aurora{opacity:var(--aurora-max);animation:none}
+.page-aurora i{position:absolute;width:46%;height:46%;border-radius:50%;mix-blend-mode:screen;animation:page-aurora-drift 18s ease-in-out infinite alternate}
+.page-aurora i:nth-child(1){left:12%;top:18%;background:radial-gradient(circle,color-mix(in srgb,var(--clone-accent,#69d5ff) 55%,transparent),transparent 65%)}
+.page-aurora i:nth-child(2){right:8%;top:10%;background:radial-gradient(circle,color-mix(in srgb,var(--clone-accent-strong,#b78cff) 50%,transparent),transparent 65%);animation-duration:22s;animation-delay:-6s}
+.page-aurora i:nth-child(3){left:38%;bottom:6%;background:radial-gradient(circle,color-mix(in srgb,var(--aurora-third) 32%,transparent),transparent 65%);animation-duration:26s;animation-delay:-12s}
+@keyframes page-aurora-in{to{opacity:var(--aurora-max)}}
+@keyframes page-aurora-drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(8%,6%) scale(1.15)}100%{transform:translate(-6%,-4%) scale(.95)}}
+@media (prefers-reduced-motion:reduce){.page-aurora{opacity:var(--aurora-max);animation:none}.page-aurora i{animation:none}}
+/* Hero stacking for the pages whose captured hero had no gradient layer. */
+.tools-root .hero{position:relative;isolation:isolate;overflow:hidden}
+.tools-root .hero>:not(.page-aurora){position:relative;z-index:1}
+.wasteland .hero{position:relative;isolation:isolate;overflow:hidden}
+.wasteland .hero>.hero-left,.wasteland .hero>.hero-right{position:relative;z-index:1}
+.life-timeline__hero .page-aurora{z-index:1}
+.not-found{overflow:hidden}
+.not-found>div:not(.page-aurora){position:relative;z-index:1}
 /* The source logo uses a runtime letter-morph animation. Keep the captured site title stable. */
 .VPNavBarTitle .VPImage.logo{display:none!important}
 
@@ -50,14 +80,14 @@ html[data-doc-theme=starry] .slh{background:linear-gradient(180deg,rgba(15,20,43
    these tokens make every shared surface follow the selected background theme. */
 html[data-doc-theme=cyber]{
   --clone-accent:#ffae1a;--clone-accent-strong:#ff6b26;--clone-text:#f8ecd5;--clone-muted:#b9a989;
-  --clone-surface:rgba(17,15,10,.88);--clone-border:rgba(255,174,26,.22);--clone-glow:rgba(255,125,28,.18);
+  --clone-surface:rgba(17,15,10,.88);--clone-border:rgba(255,174,26,.22);--clone-glow:rgba(255,125,28,.18);--clone-aurora-third:#ff5c38;
   --vp-c-brand-1:#ffb000;--vp-c-brand-2:#ffd24a;--vp-c-brand-3:#ff8e1f;
   --vp-c-bg:#090806;--vp-c-bg-alt:#0d0a06;--vp-c-bg-elv:#151009;--vp-c-bg-soft:#1b140b;
   --vp-c-text-1:#f1e4cd;--vp-c-text-2:#b8aa93;--vp-c-text-3:#897b65;--vp-c-divider:rgba(255,176,0,.16)
 }
 html[data-doc-theme=starry]{
   --clone-accent:#69d5ff;--clone-accent-strong:#b78cff;--clone-text:#e8edff;--clone-muted:#aeb9dc;
-  --clone-surface:rgba(13,19,43,.78);--clone-border:rgba(111,193,255,.24);--clone-glow:rgba(108,163,255,.2);
+  --clone-surface:rgba(13,19,43,.78);--clone-border:rgba(111,193,255,.24);--clone-glow:rgba(108,163,255,.2);--clone-aurora-third:#ffd28a;
   --vp-c-brand-1:#6ad7ff;--vp-c-brand-2:#a18cff;--vp-c-brand-3:#4ec5ee;
   --vp-c-bg:#090d20;--vp-c-bg-alt:#0c1128;--vp-c-bg-elv:#111a38;--vp-c-bg-soft:#172243;
   --vp-c-text-1:#e6ecff;--vp-c-text-2:#b4c0df;--vp-c-text-3:#8290b5;--vp-c-divider:rgba(126,184,255,.16)
@@ -156,7 +186,6 @@ html[data-doc-theme=starry] .slh-video-layer:after{content:"";position:absolute;
 .tools-root .card-desc{min-height:78px;margin-bottom:22px!important;font-size:15.5px!important;line-height:1.72!important}
 .tools-root .tag{padding:5px 12px!important;font-size:13px!important}
 .tools-root .more{font-size:14px!important}
-.tools-root>section{animation:tools-surface-in .3s cubic-bezier(.2,.8,.2,1) both}
 .tools-root .detail{padding-bottom:36px}
 .tools-root .back{margin-top:24px!important;padding:9px 17px!important;font-size:14px!important}
 .tools-root .d-hero{padding:38px!important;border-radius:24px!important}
@@ -167,7 +196,6 @@ html[data-doc-theme=starry] .slh-video-layer:after{content:"";position:absolute;
 .tools-root .stat{padding:16px 18px!important}.tools-root .stat b{font-size:19px!important}.tools-root .stat span{font-size:14px!important}
 .tools-root .d-section{margin-top:40px!important}.tools-root .d-section h2{font-size:23px!important}
 .tools-root .dl-card,.tools-root .rt,.tools-root .feat{padding:24px!important}
-@keyframes tools-surface-in{from{opacity:.25;transform:translate3d(0,12px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 @media(max-width:1080px){.tools-root .grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:700px){
   .VPDoc:has(.vp-doc._tools_){padding-inline:12px!important}
@@ -183,7 +211,7 @@ html[data-doc-theme=starry] .slh-video-layer:after{content:"";position:absolute;
   .tools-root .d-hero{padding:22px!important}
   .tools-root .d-hero h1{font-size:30px!important}
 }
-@media(prefers-reduced-motion:reduce){.tools-root>section{animation:none}.tools-root .card{transition:none!important}}
+@media(prefers-reduced-motion:reduce){.tools-root .card{transition:none!important}}
 @media (max-width:959px){.nav-admin-link{display:none}}
 .slh .galaxy canvas{width:100%!important;height:100%!important}
 

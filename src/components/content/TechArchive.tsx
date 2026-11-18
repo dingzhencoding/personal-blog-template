@@ -25,7 +25,7 @@ export default function TechArchive({ entries }: { entries: ContentEntry[] }) {
 
   return (
     <main className="tech-archive">
-      <header className="tech-archive__hero">
+      <header className="tech-archive__hero" data-enter-hero>
         <BackgroundVideo
           className="tech-archive__hero-video"
           src="/sites/yihanglizi-cn-bc4c2f76/moments-tech-e3a2705e/videos/tech.mp4"
@@ -38,10 +38,10 @@ export default function TechArchive({ entries }: { entries: ContentEntry[] }) {
           <span className="tech-archive__orb tech-archive__orb--three" />
         </div>
         <div className="tech-archive__hero-inner">
-          <p className="tech-archive__eyebrow"><span aria-hidden="true">⚡</span> TECH</p>
-          <h1>技术学习记录</h1>
-          <p className="tech-archive__subtitle">一行行代码，铺成通往未来的路 · 记录每一次成长</p>
-          <div className="tech-archive__stats" aria-label="技术学习记录统计">
+          <p className="tech-archive__eyebrow" data-reveal><span aria-hidden="true">⚡</span> TECH</p>
+          <h1 data-reveal>技术学习记录</h1>
+          <p className="tech-archive__subtitle" data-reveal>一行行代码，铺成通往未来的路 · 记录每一次成长</p>
+          <div className="tech-archive__stats" data-reveal aria-label="技术学习记录统计">
             <span><b>{articles.length}</b> 条记录</span>
             <i aria-hidden="true" />
             <span>持续 <b>更新中</b></span>
@@ -54,7 +54,7 @@ export default function TechArchive({ entries }: { entries: ContentEntry[] }) {
 
       <section className="tech-archive__section" id="tech-articles" aria-labelledby="tech-articles-heading">
         <div className="tech-archive__inner">
-          <div className="tech-archive__section-head">
+          <div className="tech-archive__section-head" data-reveal>
             <div>
               <p className="tech-archive__section-kicker">ARCHIVE / {String(articles.length).padStart(2, "0")}</p>
               <h2 id="tech-articles-heading">文章索引</h2>
@@ -63,7 +63,7 @@ export default function TechArchive({ entries }: { entries: ContentEntry[] }) {
           </div>
 
           {articles.length === 0 ? (
-            <div className="tech-archive__empty" role="status">
+            <div className="tech-archive__empty" role="status" data-reveal>
               <span aria-hidden="true">✦</span>
               <h3>还没有文章</h3>
               <p>发布第一篇技术学习记录后，文章会出现在这里。</p>
@@ -73,7 +73,7 @@ export default function TechArchive({ entries }: { entries: ContentEntry[] }) {
               {articles.map((entry, index) => {
                 const href = `/moments/tech/${encodeURIComponent(entry.slug)}/`;
                 return (
-                  <article className={`tech-archive__card tech-archive__card--tone-${index % 4}`} key={entry.id} id={`article-${entry.id}`}>
+                  <article className={`tech-archive__card tech-archive__card--tone-${index % 4}`} data-reveal key={entry.id} id={`article-${entry.id}`}>
                     <div className="tech-archive__card-kicker">
                       <span className="tech-archive__card-number">{String(index + 1).padStart(2, "0")}</span>
                       <span className="tech-archive__card-category">{entry.tags[0] || "技术学习"}</span>
