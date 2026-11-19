@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import RawHtml from "@/components/content/RawHtml";
 import ClientEnhancements from "@/components/sites/yihanglizi-cn-bc4c2f76/root-8a5edab2/ClientEnhancements";
-import { starPoster, startStarBackdrop } from "@/lib/star-backdrop";
+import { bootstrapHomeBackground, canPlayBackgroundVideoIn, homeBackgroundVideo, inlineVideoAttributes } from "@/lib/background-video";
 
 export default function Home() {
   const markup = readFileSync(
@@ -17,11 +17,11 @@ export default function Home() {
     join(process.cwd(), "src/components/sites/yihanglizi-cn-bc4c2f76/root-8a5edab2/starry.html"),
     "utf8",
   );
-  const orbitBackground = `<div class="slh-video-layer" aria-hidden="true"><img class="slh-video slh-video-poster" src="${starPoster}" alt="" decoding="async" fetchpriority="high"></div>`;
+  const orbitBackground = `<div class="slh-video-layer" aria-hidden="true"><img class="slh-video slh-video-poster" src="${homeBackgroundVideo.poster}" alt="" decoding="async" fetchpriority="high"></div>`;
   const starHome = starMarkup.replace(/(<div[^>]*class="slh"[^>]*>)/, `$1${orbitBackground}`);
   const insertionPoint = "</footer></div><!----><!----><!----></div></div></div><!--[--><!--]--></div></div><footer";
   if (!markup.includes(insertionPoint)) throw new Error("Home theme insertion point is missing");
   const homeMarkup = markup.replace(insertionPoint, `</footer></div><!----><!----><!----></div>${starHome}</div></div><!--[--><!--]--></div></div><footer`);
-  const bootstrap = `if(document.documentElement.dataset.docTheme==="starry")(${startStarBackdrop.toString()})(document.querySelector(".slh-video-layer"));`;
+  const bootstrap = `(${bootstrapHomeBackground.toString()})(${JSON.stringify(homeBackgroundVideo.src)},${JSON.stringify(homeBackgroundVideo.poster)},(${canPlayBackgroundVideoIn.toString()}),${JSON.stringify(inlineVideoAttributes)});`;
   return <><RawHtml id="home" domId="app" html={homeMarkup} /><script dangerouslySetInnerHTML={{ __html: bootstrap }} /><ClientEnhancements /></>;
 }

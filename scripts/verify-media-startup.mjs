@@ -35,35 +35,32 @@ async function createPage(options = {}) {
 const music = page => page.locator(".st-row").filter({ hasText: "背景音乐" });
 try {
   const early = await createPage();
-  const mediaRequests = [];
-  early.page.on("request", request => { if (/\.mp4(?:\?|$)/.test(request.url())) mediaRequests.push(request.url()); });
+  let releaseVideo;
+  await early.page.route("**/starlight-orbit-v6.mp4", async route => {
+    await new Promise(resolve => { releaseVideo = resolve; });
+    await route.continue().catch(() => {});
+  });
   await early.page.addInitScript(() => {
-    document.addEventListener("DOMContentLoaded", () => {
-      const layer = document.querySelector(".slh-video-layer");
-      window.skyAtDomContent = {
-        canvas: Boolean(layer?.querySelector("canvas.slh-video-canvas")),
-        video: Boolean(layer?.querySelector("video")),
-      };
+    document.addEventListener("loadstart", event => {
+      if (event.target instanceof HTMLVideoElement) window.videoStartedAt = performance.now();
     }, true);
   });
+  const videoRequest = early.page.waitForRequest("**/starlight-orbit-v6.mp4");
   await early.page.goto(base + "/", { waitUntil: "domcontentloaded" });
+  await videoRequest;
   await early.page.locator(".clone-nav-panel-title").waitFor({ state: "attached" });
   await early.page.locator(".cosmic-markers").waitFor({ state: "attached" });
-  const startup = await early.page.evaluate(() => ({
-    ...window.skyAtDomContent,
-    theme: document.documentElement.dataset.docTheme,
-    canvasPixels: (() => {
-      const canvas = document.querySelector("canvas.slh-video-canvas");
-      return canvas ? canvas.width * canvas.height : 0;
-    })(),
-  }));
-  assert.equal(startup.video, false, "The home backdrop must not depend on a video element");
-  assert.equal(startup.canvas, true, "The canvas sky must exist as soon as the document finishes parsing");
-  assert.ok(startup.canvasPixels > 0, "The sky must already own a drawing surface during startup");
   await early.page.locator(".ns-btn").click();
   await early.page.locator(".ns-opt").filter({ hasText: "赛博编程" }).click();
-  assert.equal(await early.page.locator("html").getAttribute("data-doc-theme"), "cyber", "Theme controls must work immediately");
-  assert.deepEqual(mediaRequests, [], "The home must not download any background video");
+  const startup = await early.page.evaluate(() => ({
+    load: performance.getEntriesByType("navigation")[0].loadEventStart,
+    video: window.videoStartedAt,
+    theme: document.documentElement.dataset.docTheme,
+  }));
+  assert.ok(startup.video > 0, "Decorative video must start immediately");
+  assert.equal(startup.theme, "cyber", "Theme controls must work while the video request is still pending");
+  releaseVideo?.();
+  await early.page.unroute("**/starlight-orbit-v6.mp4");
   await early.context.close();
 
   const { context, page } = await createPage();
@@ -71,7 +68,7 @@ try {
   page.on("request", request => { if (/\.(mp3|m4a)(?:\?|$)/.test(request.url())) requests.push(request.url()); });
   await page.goto(base + "/", { waitUntil: "domcontentloaded" });
   await page.locator(".clone-nav-panel-title").waitFor({ state: "attached" });
-  await page.locator("canvas.slh-video-canvas").waitFor({ state: "visible" });
+  await page.waitForFunction(() => document.querySelector(".slh-video-layer video")?.currentTime > .2);
   assert.deepEqual(requests, [], "Disabled music and untouched pet sounds must not download on the first screen");
   await page.locator(".cosmic-markers").waitFor({ state: "attached" });
   assert.equal(await page.locator(".cosmic-marker").count() > 0, true, "The galaxy must initialize with the rest of the page");
@@ -144,5 +141,5 @@ try {
   await slow.page.waitForFunction(() => document.documentElement.dataset.backgroundMusic === "playing");
   await slow.context.close();
   assert.deepEqual(errors, []);
-  console.log(`Media startup passed: the canvas sky renders during document parsing with no video download; galaxy starts immediately; no idle audio downloads; music starts, emits nonzero samples (RMS ${energy.toFixed(3)}), restores position, retries blocked autoplay, reports mute, and exits a stalled load after 6 seconds.`);
+  console.log(`Media startup passed: video and galaxy start immediately; controls remain usable while video is pending; no idle audio downloads; music starts, emits nonzero samples (RMS ${energy.toFixed(3)}), restores position, retries blocked autoplay, reports mute, and exits a stalled load after 6 seconds.`);
 } finally { await browser.close(); }
