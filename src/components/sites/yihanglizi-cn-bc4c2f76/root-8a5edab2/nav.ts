@@ -1,7 +1,7 @@
 import { createBackgroundMusic, type MusicState } from "@/lib/background-music";
 import dipperStates from "./dipper-states.json";
 import zodiacStates from "./zodiac-states.json";
-import { canPlayBackgroundVideo, homeBackgroundVideo, inlineVideoAttributes, manageBackgroundVideo } from "@/lib/background-video";
+import { canPlayBackgroundVideo, homeBackgroundVideo, inlineVideoAttributes, manageBackgroundVideo, pickHomeBackgroundSource } from "@/lib/background-video";
 
 const links: ReadonlyArray<readonly [string, string]> = [
   ["首页", "/"],
@@ -327,7 +327,7 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
       video.disableRemotePlayback = true;
       for (const [name, value] of Object.entries(inlineVideoAttributes)) video.setAttribute(name, value);
       video.poster = homeBackgroundVideo.poster;
-      video.src = homeBackgroundVideo.src;
+      video.src = pickHomeBackgroundSource(homeBackgroundVideo.src, homeBackgroundVideo.liteSrc);
       layer.append(video);
     }
     // React's development remount can leave the existing video in the layer.

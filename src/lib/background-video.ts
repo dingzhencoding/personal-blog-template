@@ -16,13 +16,27 @@ export const inlineVideoAttributes = {
 };
 
 export const homeBackgroundVideo = {
-  src: "/media/starlight-orbit-v6.mp4",
-  poster: "/media/starlight-orbit-poster-v2.webp",
+  src: "/media/starlight-orbit-v7.mp4",
+  liteSrc: "/media/starlight-orbit-v7-lite.mp4",
+  poster: "/media/starlight-orbit-poster-v3.webp",
 };
+
+/** Keep argument-only so it can ride along inside the inline bootstrap. */
+export function pickHomeBackgroundSource(hqSrc: string, liteSrc: string): string {
+  const connection = (navigator as Navigator & {
+    connection?: { saveData?: boolean; effectiveType?: string; downlink?: number };
+  }).connection;
+  const slow = !!connection && (connection.saveData === true
+    || /(^|-)3g$|(^|-)2g$/.test(connection.effectiveType || "")
+    || (typeof connection.downlink === "number" && connection.downlink > 0 && connection.downlink < 2.5));
+  return slow || window.matchMedia("(max-width: 720px)").matches ? liteSrc : hqSrc;
+}
 
 /** Standalone bootstrap: start media immediately without gating page features on window.load. */
 export function bootstrapHomeBackground(
-  src: string, poster: string, allowed: (browser: Window) => boolean, attributes: Record<string, string>,
+  hqSrc: string, liteSrc: string, poster: string,
+  allowed: (browser: Window) => boolean, attributes: Record<string, string>,
+  pickSource: (hqSrc: string, liteSrc: string) => string,
 ) {
   if (!allowed(window) || document.hidden || document.documentElement.dataset.docTheme !== "starry") return;
   const layer = document.querySelector(".slh-video-layer");
@@ -36,7 +50,7 @@ export function bootstrapHomeBackground(
   video.setAttribute("aria-hidden", "true");
   for (const [name, value] of Object.entries(attributes)) video.setAttribute(name, value);
   video.poster = poster;
-  video.src = src;
+  video.src = pickSource(hqSrc, liteSrc);
   layer.append(video);
   void video.play().then(() => {
     if (document.hidden || document.documentElement.dataset.docTheme !== "starry") video.pause();
