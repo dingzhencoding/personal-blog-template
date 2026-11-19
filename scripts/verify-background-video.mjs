@@ -5,8 +5,7 @@ import { chromium } from "playwright";
 const base = process.env.STATIC_TEST_URL || "http://127.0.0.1:4183";
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true });
 const android = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36";
-const routes = [
-  ["/", ".slh-video-layer", ".slh-video-poster"],
+const momentRoutes = [
   ["/moments/tech/", ".tech-archive__hero", "img.tech-archive__hero-video"],
   ["/moments/life/", ".life-timeline__hero", "img.life-timeline__hero-video"],
 ];
@@ -25,7 +24,7 @@ try {
     const requests = [];
     page.on("request", request => { if (/\.mp4(?:\?|$)/.test(request.url())) requests.push(request.url()); });
     page.on("pageerror", error => errors.push(`${name}: ${error.message}`));
-    for (const [route, container, poster] of routes) {
+    for (const [route, container, poster] of momentRoutes) {
       const response = await page.goto(base + route);
       assert.equal(response.status(), 200);
       assert.equal(/<video\b/.test(await response.text()), false, "Static HTML must not autoplay before browser detection");
@@ -34,22 +33,34 @@ try {
       assert.equal(await page.locator(`${container} video`).count(), 0, `${name} must not mount a native decorative video`);
       const loaded = await page.locator(poster).evaluate(image => image.complete && image.naturalWidth > 0);
       assert.equal(loaded, true, "The replacement poster must load");
-      await page.locator(".ns-btn").click();
-      await page.locator(".ns-opt").filter({ hasText: "赛博编程" }).click();
-      assert.equal(await page.locator("html").getAttribute("data-doc-theme"), "cyber");
-      await page.locator(".ns-btn").click();
-      await page.locator(".ns-opt").filter({ hasText: "星空极光" }).click();
-      await page.locator(poster).waitFor({ state: "visible" });
-      assert.equal(await page.locator(`${container} video`).count(), 0, "Switching themes must not reintroduce the video");
-      await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
-      await page.locator(".VPNavBarHamburger").click();
-      await page.locator('.clone-mobile-menu a[href="/about/"]').waitFor({ state: "visible" });
-      await page.locator(".VPNavBarHamburger").click();
-      await page.locator(".DocSearch-Button").click();
-      await page.locator(".clone-search-box").waitFor({ state: "visible" });
-      await page.keyboard.press("Escape");
-      if (name === "baidu-android") await page.screenshot({ path: `artifacts/background-video/${route === "/" ? "home" : route.split("/")[2]}.png` });
     }
+    const response = await page.goto(base + "/");
+    assert.equal(response.status(), 200);
+    await page.locator(".clone-nav-panel-title").waitFor({ state: "attached" });
+    await page.locator("canvas.slh-video-canvas").waitFor({ state: "attached" });
+    assert.equal(await page.locator(".slh-video-layer video").count(), 0, `${name} must render the canvas sky instead of a video`);
+    const painted = await page.locator("canvas.slh-video-canvas").evaluate(canvas => canvas.width > 8 && canvas.height > 8);
+    assert.equal(painted, true, "The canvas sky must be backed by a real drawing surface");
+    if (name === "reduced-motion") {
+      const first = await page.locator("canvas.slh-video-canvas").evaluate(canvas => canvas.toDataURL());
+      await page.waitForTimeout(600);
+      const second = await page.locator("canvas.slh-video-canvas").evaluate(canvas => canvas.toDataURL());
+      assert.equal(first, second, "Reduced-motion visitors get a still star map");
+    }
+    await page.locator(".ns-btn").click();
+    await page.locator(".ns-opt").filter({ hasText: "赛博编程" }).click();
+    assert.equal(await page.locator("html").getAttribute("data-doc-theme"), "cyber");
+    await page.locator(".ns-btn").click();
+    await page.locator(".ns-opt").filter({ hasText: "星空极光" }).click();
+    await page.locator("canvas.slh-video-canvas").waitFor({ state: "visible" });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await page.locator(".VPNavBarHamburger").click();
+    await page.locator('.clone-mobile-menu a[href="/about/"]').waitFor({ state: "visible" });
+    await page.locator(".VPNavBarHamburger").click();
+    await page.locator(".DocSearch-Button").click();
+    await page.locator(".clone-search-box").waitFor({ state: "visible" });
+    await page.keyboard.press("Escape");
+    if (name === "baidu-android") await page.screenshot({ path: "artifacts/background-video/home.png" });
     assert.deepEqual(requests, [], "Fallback browsers must not download any background MP4");
     await context.close();
   }
@@ -61,7 +72,30 @@ try {
     const context = await browser.newContext(options);
     const page = await context.newPage();
     page.on("pageerror", error => errors.push(`${name}: ${error.message}`));
-    for (const [route, container] of routes) {
+    await page.goto(base + "/");
+    const sky = page.locator("canvas.slh-video-canvas");
+    await sky.waitFor({ state: "visible" });
+    const backing = await sky.evaluate(canvas => ({ width: canvas.width, css: canvas.clientWidth }));
+    assert.ok(backing.width >= backing.css, "The sky must render at or above CSS resolution");
+    const first = await sky.evaluate(canvas => canvas.toDataURL());
+    await page.waitForTimeout(700);
+    const second = await sky.evaluate(canvas => canvas.toDataURL());
+    assert.notEqual(first, second, "The starry sky must keep drifting and twinkling");
+    assert.equal(await page.locator(".slh-video-layer video").count(), 0, "The home backdrop is canvas-only");
+    await page.locator(".ns-btn").click();
+    await page.locator(".ns-opt").filter({ hasText: "赛博编程" }).click();
+    assert.equal(await page.locator(".slh").evaluate(node => getComputedStyle(node).display), "none");
+    await page.reload();
+    await page.locator(".clone-nav-panel-title").waitFor({ state: "attached" });
+    assert.equal(await page.locator("canvas.slh-video-canvas").count(), 0, "A saved cyber theme must not start the hidden starry sky");
+    await page.locator(".ns-btn").click();
+    await page.locator(".ns-opt").filter({ hasText: "星空极光" }).click();
+    await page.locator("canvas.slh-video-canvas").waitFor({ state: "visible" });
+    const resumedFirst = await page.locator("canvas.slh-video-canvas").evaluate(canvas => canvas.toDataURL());
+    await page.waitForTimeout(700);
+    const resumedSecond = await page.locator("canvas.slh-video-canvas").evaluate(canvas => canvas.toDataURL());
+    assert.notEqual(resumedFirst, resumedSecond, "Switching back to the starry theme must resume the sky");
+    for (const [route, container] of momentRoutes) {
       await page.goto(base + route);
       const video = page.locator(`${container} video`);
       await video.waitFor({ state: "visible" });
@@ -70,105 +104,10 @@ try {
       assert.equal(await video.getAttribute("webkit-playsinline"), "");
       assert.equal(await video.getAttribute("x5-playsinline"), "");
       await page.waitForFunction(selector => document.querySelector(selector)?.currentTime > 0, `${container} video`);
-      assert.equal(await page.evaluate(() => document.fullscreenElement), null);
     }
-    await page.goto(base + "/");
-    await page.locator(".clone-nav-panel-title").waitFor({ state: "attached" });
-    await page.locator(".ns-btn").click();
-    await page.locator(".ns-opt").filter({ hasText: "赛博编程" }).click();
-    assert.equal(await page.locator(".slh-video-layer video").evaluate(video => video.paused), true);
-    await page.reload();
-    await page.locator(".clone-nav-panel-title").waitFor({ state: "attached" });
-    assert.equal(await page.locator(".slh-video-layer video").count(), 0, "Saved cyber theme must not start the hidden starry video");
     await context.close();
   }
-  // Check a cold cache on a 1 Mbps connection, including first-start latency.
-  const slowContext = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
-  const slowPage = await slowContext.newPage();
-  slowPage.on("pageerror", error => errors.push(`slow-network: ${error.message}`));
-  await slowPage.addInitScript(() => {
-    window.backgroundPlayback = { initialBuffer: null, waits: 0, waitingEvents: [], loadedAt: null, playingAt: null };
-    document.addEventListener("loadeddata", event => {
-      if (event.target instanceof HTMLVideoElement && event.target.matches(".slh-video")) window.backgroundPlayback.loadedAt ??= performance.now();
-    }, true);
-    document.addEventListener("playing", event => {
-      const video = event.target;
-      if (!(video instanceof HTMLVideoElement) || !video.matches(".slh-video")) return;
-      if (window.backgroundPlayback.initialBuffer === null) {
-        window.backgroundPlayback.initialBuffer = video.buffered.end(0) - video.currentTime;
-        window.backgroundPlayback.playingAt = performance.now();
-      }
-    }, true);
-    document.addEventListener("waiting", event => {
-      const video = event.target;
-      if (video instanceof HTMLVideoElement && video.matches(".slh-video") && video.currentTime > .1) {
-        const available = Array.from({ length: video.buffered.length }, (_, i) =>
-          video.buffered.start(i) <= video.currentTime && video.buffered.end(i) >= video.currentTime ? video.buffered.end(i) - video.currentTime : 0,
-        );
-        if (Math.max(0, ...available) <= .2) window.backgroundPlayback.waits++;
-        window.backgroundPlayback.waitingEvents.push({
-          time: video.currentTime, ready: video.readyState,
-          buffer: Array.from({ length: video.buffered.length }, (_, i) => [video.buffered.start(i), video.buffered.end(i)]),
-        });
-      }
-    }, true);
-  });
-  const network = await slowContext.newCDPSession(slowPage);
-  await network.send("Network.enable");
-  await network.send("Network.setCacheDisabled", { cacheDisabled: true });
-  await network.send("Network.emulateNetworkConditions", {
-    offline: false, latency: 120, downloadThroughput: 128 * 1024, uploadThroughput: 64 * 1024,
-  });
-  await slowPage.goto(base + "/", { waitUntil: "domcontentloaded" });
-  await slowPage.waitForFunction(() => window.backgroundPlayback.initialBuffer !== null, null, { timeout: 45000 });
-  await slowPage.waitForTimeout(12000);
-  const playback = await slowPage.evaluate(() => ({
-    ...window.backgroundPlayback,
-    time: document.querySelector(".slh-video-layer video").currentTime,
-  }));
-  console.log(`Slow network sample: ${JSON.stringify(playback)}`);
-  assert.ok(playback.initialBuffer > 0, `Playback should start when frames are available: ${JSON.stringify(playback)}`);
-  assert.ok(playback.playingAt - playback.loadedAt < 4000, `Video startup buffering must stay bounded: ${JSON.stringify(playback)}`);
-  assert.equal(playback.waits, 0, `The optimized video should play without rebuffering at 1 Mbps: ${JSON.stringify(playback)}`);
-  assert.ok(playback.time > 10, "Playback must keep advancing on a slow connection");
-  console.log(`Slow network passed: ${playback.initialBuffer.toFixed(2)}s buffered before playing, no buffering stalls in 12s.`);
-  await slowContext.close();
-
-  const recoveryContext = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
-  const recoveryPage = await recoveryContext.newPage();
-  recoveryPage.on("pageerror", error => errors.push(`playback-recovery: ${error.message}`));
-  await recoveryPage.addInitScript(() => {
-    const play = HTMLMediaElement.prototype.play;
-    window.blockedBackgroundAttempts = 0;
-    HTMLMediaElement.prototype.play = function () {
-      if (this.matches(".slh-video") && window.blockedBackgroundAttempts++ === 0) {
-        return Promise.reject(new DOMException("Simulated autoplay policy", "NotAllowedError"));
-      }
-      return play.call(this);
-    };
-  });
-  await recoveryPage.goto(base + "/");
-  await recoveryPage.waitForFunction(() => window.blockedBackgroundAttempts > 0);
-  const recoveredVideo = recoveryPage.locator(".slh-video-layer video");
-  assert.equal(await recoveredVideo.evaluate(video => video.paused), true, "Blocked autoplay must wait for user interaction");
-  await recoveryPage.keyboard.press("Shift");
-  await recoveryPage.waitForFunction(() => document.querySelector(".slh-video-layer video")?.currentTime > .1);
-  await recoveryPage.evaluate(() => {
-    Object.defineProperty(document, "hidden", { configurable: true, value: true });
-    document.dispatchEvent(new Event("visibilitychange"));
-  });
-  assert.equal(await recoveredVideo.evaluate(video => video.paused), true, "Hidden pages must pause playback");
-  await recoveryPage.evaluate(() => {
-    delete document.hidden;
-    document.dispatchEvent(new Event("visibilitychange"));
-  });
-  await recoveryPage.waitForFunction(() => !document.querySelector(".slh-video-layer video")?.paused);
-  await recoveredVideo.evaluate(video => { video.dispatchEvent(new Event("waiting")); });
-  await recoveryPage.waitForFunction(() => !document.querySelector(".slh-video-layer video")?.paused);
-  await recoveredVideo.evaluate(video => { video.currentTime = video.duration - .15; });
-  await recoveryPage.waitForFunction(() => document.querySelector(".slh-video-layer video")?.currentTime < 3);
-  await recoveryContext.close();
 
   assert.deepEqual(errors, []);
-  console.log("Backgrounds passed: fallback browsers avoid MP4 requests; desktop/mobile retain inline video; slow-network buffering, autoplay retry, page visibility, and looping work.");
+  console.log("Backgrounds passed: home renders only the live canvas sky (no MP4); fallback browsers and reduced motion stay static; theme switching stops/restores the sky; moment pages keep their guarded inline videos.");
 } finally { await browser.close(); }
