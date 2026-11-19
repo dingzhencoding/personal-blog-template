@@ -1,7 +1,7 @@
 import { createBackgroundMusic, type MusicState } from "@/lib/background-music";
 import dipperStates from "./dipper-states.json";
 import zodiacStates from "./zodiac-states.json";
-import { startStarBackdrop, starPoster } from "@/lib/star-backdrop";
+import { canPlayBackgroundVideo, homeBackgroundVideo, inlineVideoAttributes, manageBackgroundVideo } from "@/lib/background-video";
 
 const links: ReadonlyArray<readonly [string, string]> = [
   ["首页", "/"],
@@ -291,17 +291,48 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
   const themeStorageKey = "clone-site-theme";
   const themeDefaultKey = "clone-site-theme-default";
   const themeDefaultVersion = "starry-default-v2";
-  const orbitPosterMarkup = `<img class="slh-video slh-video-poster" src="${starPoster}" alt="" decoding="async" fetchpriority="high">`;
+  const orbitPosterMarkup = `<img class="slh-video slh-video-poster" src="${homeBackgroundVideo.poster}" alt="" decoding="async" fetchpriority="high">`;
   if (window.localStorage.getItem(themeDefaultKey) !== themeDefaultVersion) {
     window.localStorage.setItem(themeStorageKey, "星空极光");
     window.localStorage.setItem(themeDefaultKey, themeDefaultVersion);
   }
   let themeChoice = window.localStorage.getItem(themeStorageKey) || "星空极光";
-  let disposeOrbitBackdrop: (() => void) | undefined;
-  const ensureOrbitBackdrop = () => {
-    const layer = star ? star.querySelector<HTMLElement>(".slh-video-layer") : null;
+  let orbitPlayback: ReturnType<typeof manageBackgroundVideo> | undefined;
+  const syncOrbitPlayback = () => {
+    const layer = star?.querySelector<HTMLElement>(".slh-video-layer");
     if (!layer) return;
-    if (!disposeOrbitBackdrop) disposeOrbitBackdrop = startStarBackdrop(layer);
+    let video = layer.querySelector<HTMLVideoElement>("video.slh-video");
+    // Never expose an autoplaying video to Baidu before the compatibility check.
+    if (!canPlayBackgroundVideo()) {
+      if (video) {
+        orbitPlayback?.dispose();
+        orbitPlayback = undefined;
+        video.pause();
+        video.removeAttribute("src");
+        video.load();
+        video.remove();
+      }
+      return;
+    }
+    if (document.hidden || themeChoice !== "星空极光") { orbitPlayback?.sync(); return; }
+    if (!video) {
+      video = document.createElement("video");
+      video.className = "slh-video";
+      video.muted = true;
+      video.defaultMuted = true;
+      video.loop = true;
+      video.playsInline = true;
+      video.preload = "auto";
+      video.disablePictureInPicture = true;
+      video.disableRemotePlayback = true;
+      for (const [name, value] of Object.entries(inlineVideoAttributes)) video.setAttribute(name, value);
+      video.poster = homeBackgroundVideo.poster;
+      video.src = homeBackgroundVideo.src;
+      layer.append(video);
+    }
+    // React's development remount can leave the existing video in the layer.
+    orbitPlayback ??= manageBackgroundVideo(video, () => themeChoice === "星空极光");
+    orbitPlayback?.sync();
   };
   const selectTheme = (name: string) => {
     themeChoice = name;
@@ -333,12 +364,13 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
       galaxyReady = false;
     }
     if (star) star.style.display = starry ? "" : "none";
-    if (starry) ensureOrbitBackdrop();
+    syncOrbitPlayback();
     window.dispatchEvent(new Event("clone:theme-change"));
     closeThemePanel();
     window.scrollTo({top:0,behavior:"instant"});
   };
   selectTheme(themeChoice);
+  document.addEventListener("visibilitychange", syncOrbitPlayback);
   const toggleTheme = () => {
     if (!nav) return;
     const open=!nav.classList.contains("open");
@@ -574,5 +606,5 @@ export function enhanceNav(root: HTMLElement, starMarkup: string) {
   searchButton?.addEventListener("click",openSearch);
   const keydown=(e:KeyboardEvent)=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openSearch();}if(e.key==="Escape"){closeBlogMenu();closeThemePanel();closeSoundPanel();closeSearch();}};
   document.addEventListener("keydown",keydown);
-  return ()=>{navButton?.removeEventListener("click",toggleTheme);soundButton?.removeEventListener("click",toggleSound);burger?.removeEventListener("click",toggleMobile);blogMenu?.removeEventListener("click",toggleBlogMenu);searchButton?.removeEventListener("click",openSearch);if(searchButton){if(searchButtonLabel===null)searchButton.removeAttribute("aria-label");else searchButton.setAttribute("aria-label",searchButtonLabel);}if(searchButtonPlaceholder&&searchButtonPlaceholderText!==null)searchButtonPlaceholder.textContent=searchButtonPlaceholderText;document.removeEventListener("keydown",keydown);document.removeEventListener("click",clickTone);document.removeEventListener("pointerdown",closePanelsOnOutsidePointer,true);window.removeEventListener("beforeunload",saveMusicProgress);audio.removeEventListener("timeupdate",saveMusicProgress);saveMusicProgress();backgroundMusic.dispose();disposeOrbitBackdrop?.();void audioContext?.close();closeBlogMenu();blogPanelTitle.remove();closeThemePanel();closeSoundPanel();closeSearch();mobile?.remove();if(!existingAdminLink)adminLink.remove();if(createdStar)star?.remove();disposeGalaxy();};
+  return ()=>{navButton?.removeEventListener("click",toggleTheme);soundButton?.removeEventListener("click",toggleSound);burger?.removeEventListener("click",toggleMobile);blogMenu?.removeEventListener("click",toggleBlogMenu);searchButton?.removeEventListener("click",openSearch);if(searchButton){if(searchButtonLabel===null)searchButton.removeAttribute("aria-label");else searchButton.setAttribute("aria-label",searchButtonLabel);}if(searchButtonPlaceholder&&searchButtonPlaceholderText!==null)searchButtonPlaceholder.textContent=searchButtonPlaceholderText;document.removeEventListener("keydown",keydown);document.removeEventListener("click",clickTone);document.removeEventListener("pointerdown",closePanelsOnOutsidePointer,true);document.removeEventListener("visibilitychange",syncOrbitPlayback);window.removeEventListener("beforeunload",saveMusicProgress);audio.removeEventListener("timeupdate",saveMusicProgress);saveMusicProgress();backgroundMusic.dispose();orbitPlayback?.dispose();void audioContext?.close();closeBlogMenu();blogPanelTitle.remove();closeThemePanel();closeSoundPanel();closeSearch();mobile?.remove();if(!existingAdminLink)adminLink.remove();if(createdStar)star?.remove();disposeGalaxy();};
 }
