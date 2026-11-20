@@ -3,6 +3,7 @@
 import { useLayoutEffect } from "react";
 import { enhanceBackground } from "../shared/background";
 import { enhancePageEnter } from "@/lib/page-enter";
+import { enhanceBrandWord } from "./brand";
 import { enhanceGame } from "./game";
 import { enhanceNav } from "./nav";
 
@@ -102,6 +103,7 @@ export default function ClientEnhancements() {
     const disposeNav = enhanceNav(root, "");
     // Both theme homes live in the layout; the hidden one reveals when switched to.
     const disposeEnter = enhancePageEnter(document.querySelector<HTMLElement>("#app .Layout") ?? root);
+    const disposeBrand = enhanceBrandWord(document);
     syncTheme();
     return () => {
       window.removeEventListener("clone:theme-change", syncTheme);
@@ -109,6 +111,7 @@ export default function ClientEnhancements() {
       disposeBg?.();
       disposeNav();
       disposeEnter();
+      disposeBrand();
     };
   }, []);
   return null;

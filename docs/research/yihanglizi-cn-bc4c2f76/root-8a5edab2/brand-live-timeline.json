@@ -1,0 +1,237 @@
+[
+  {
+    "t": 5895,
+    "text": "栗子一行",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--normal",
+      "ba-char--normal",
+      "ba-char--normal"
+    ]
+  },
+  {
+    "t": 6321,
+    "text": "栗栗子一行",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--morph",
+      "ba-char--shift",
+      "ba-char--normal",
+      "ba-char--normal",
+      "ba-char--normal"
+    ]
+  },
+  {
+    "t": 7165,
+    "text": "李一行行",
+    "classes": [
+      "ba-char--li",
+      "ba-char--normal",
+      "ba-char--normal",
+      "ba-char--normal"
+    ]
+  },
+  {
+    "t": 7652,
+    "text": "李一行",
+    "classes": [
+      "ba-char--li",
+      "ba-char--normal",
+      "ba-char--normal"
+    ]
+  },
+  {
+    "t": 10965,
+    "text": "栗栗一行行",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--morph",
+      "ba-char--shift",
+      "ba-char--normal",
+      "ba-char--normal",
+      "ba-char--normal"
+    ]
+  },
+  {
+    "t": 11671,
+    "text": "栗子一行",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--normal",
+      "ba-char--normal",
+      "ba-char--normal"
+    ]
+  },
+  {
+    "t": 13203,
+    "text": "说还如气",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble"
+    ]
+  },
+  {
+    "t": 13280,
+    "text": "气水水在",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble"
+    ]
+  },
+  {
+    "t": 13354,
+    "text": "对没心到",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble"
+    ]
+  },
+  {
+    "t": 13429,
+    "text": "后人面人",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble"
+    ]
+  },
+  {
+    "t": 13505,
+    "text": "出后的面",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble"
+    ]
+  },
+  {
+    "t": 13595,
+    "text": "可十经经",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble"
+    ]
+  },
+  {
+    "t": 13671,
+    "text": "一行栗子",
+    "classes": [
+      "ba-char--normal",
+      "ba-char--normal",
+      "ba-char--morph",
+      "ba-char--normal"
+    ]
+  },
+  {
+    "t": 16585,
+    "text": "两头水得",
+    "classes": [
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--morph",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble"
+    ]
+  },
+  {
+    "t": 16741,
+    "text": "们样没是",
+    "classes": [
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--morph",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble"
+    ]
+  },
+  {
+    "t": 16882,
+    "text": "开用了一",
+    "classes": [
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--morph",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble"
+    ]
+  },
+  {
+    "t": 17130,
+    "text": "开的这气",
+    "classes": [
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble",
+      "ba-char--morph",
+      "ba-char--scramble",
+      "ba-char--normal",
+      "ba-char--scramble"
+    ]
+  },
+  {
+    "t": 17355,
+    "text": "栗子一行",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--normal",
+      "ba-char--normal",
+      "ba-char--normal"
+    ]
+  },
+  {
+    "t": 19653,
+    "text": "栗栗子一行",
+    "classes": [
+      "ba-char--morph",
+      "ba-char--morph",
+      "ba-char--shift",
+      "ba-char--normal",
+      "ba-char--normal",
+      "ba-char--normal"
+    ]
+  }
+]

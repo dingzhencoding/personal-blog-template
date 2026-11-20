@@ -1,0 +1,104 @@
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+@keyframes balloonBob-2a393b97 { 
+  0%, 100% { transform: translateY(0px) rotate(-3deg); }
+  50% { transform: translateY(-14px) rotate(3deg); }
+}
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba[data-v-cf82e59d] { --ba-ink: #e6dccb; --ba-accent: #ffb000; --ba-accent-2: #ffd24a; --ba-glow: rgba(255, 176, 0, .35); }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba[data-v-cf82e59d] { position: relative; display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 12px; cursor: pointer; user-select: none; overflow: hidden; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-row[data-v-cf82e59d] { display: flex; flex-direction: row; align-items: center; gap: 4px; position: relative; z-index: 1; overflow: hidden; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-slot[data-v-cf82e59d] { position: relative; width: 37px; height: 44px; display: flex; align-items: center; justify-content: center; transition: opacity 0.35s, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); overflow: hidden; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-slot--hidden[data-v-cf82e59d] { width: 0px; overflow: hidden; margin: 0px; opacity: 0 !important; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-slot--bounce[data-v-cf82e59d] { animation: 1s cubic-bezier(0.22, 1.4, 0.45, 1) 0s 1 normal forwards running slot-bounce-cf82e59d; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-slot--bounce[data-v-cf82e59d]:nth-child(1) { animation-delay: 0s; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-slot--bounce[data-v-cf82e59d]:nth-child(2) { animation-delay: 0.12s; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-slot--bounce[data-v-cf82e59d]:nth-child(3) { animation-delay: 0.24s; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-char[data-v-cf82e59d] { font-weight: 900; line-height: 1; transition: color 0.4s; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-char--normal[data-v-cf82e59d] { font-size: 30px; color: var(--ba-ink); letter-spacing: 1px; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-char--morph[data-v-cf82e59d], .ba-char--li[data-v-cf82e59d] { font-size: 31px; color: var(--ba-accent); text-shadow: 0 0 12px var(--ba-glow); }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-char--scramble[data-v-cf82e59d] { color: var(--ba-accent-2) !important; text-shadow: 0 0 12px var(--ba-glow); }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-split[data-v-cf82e59d] { position: absolute; inset: 0px; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-split-half[data-v-cf82e59d] { position: absolute; left: 0px; width: 100%; overflow: hidden; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-split--top[data-v-cf82e59d] { top: 0px; height: 47%; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-split--top .ba-char--morph[data-v-cf82e59d] { position: absolute; top: 0px; left: 0px; width: 100%; text-align: center; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-split--fly[data-v-cf82e59d] { animation: 0.7s cubic-bezier(0.55, 0, 0.65, 0.4) 0s 1 normal forwards running fly-left-cf82e59d; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-split--fly-back[data-v-cf82e59d] { animation: 0.65s cubic-bezier(0.22, 0.6, 0.45, 1) 0s 1 normal forwards running fly-right-cf82e59d; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-split--btm[data-v-cf82e59d] { top: 47%; height: 53%; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-split--btm .ba-char--morph[data-v-cf82e59d] { position: absolute; top: calc((-47% / 53%) * 100%); left: 0px; width: 100%; text-align: center; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-particles[data-v-cf82e59d] { position: absolute; top: 50%; left: 0px; width: 100%; height: 0px; pointer-events: none; z-index: 2; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba-particle[data-v-cf82e59d] { position: absolute; top: -2px; width: 3px; height: 3px; border-radius: 50%; background: var(--ba-accent); opacity: 0; animation: 0.8s ease-out 0s 1 normal forwards running particle-fly-cf82e59d; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba--sm[data-v-cf82e59d] { padding: 1px 3px; border-radius: 8px; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba--sm .ba-row[data-v-cf82e59d] { gap: 1px; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba--sm .ba-slot[data-v-cf82e59d] { width: 20px; height: 24px; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba--sm .ba-char--normal[data-v-cf82e59d] { font-size: 16px; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba--sm .ba-char--morph[data-v-cf82e59d], .ba--sm .ba-char--li[data-v-cf82e59d] { font-size: 17px; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba--sm .ba-split--fly[data-v-cf82e59d] { animation: 0.6s cubic-bezier(0.55, 0, 0.65, 0.4) 0s 1 normal forwards running fly-left-sm-cf82e59d; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba--sm .ba-split--fly-back[data-v-cf82e59d] { animation: 0.55s cubic-bezier(0.22, 0.6, 0.45, 1) 0s 1 normal forwards running fly-right-sm-cf82e59d; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba--sm .ba-slot--bounce[data-v-cf82e59d] { animation-name: slot-bounce-sm-cf82e59d; animation-duration: 0.8s; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.ba--sm .ba-particle[data-v-cf82e59d] { width: 2px; height: 2px; animation-name: particle-fly-sm-cf82e59d; animation-duration: 0.6s; }
+
+/* https://yihanglizi.cn/assets/style.t3POxbMF.css */
+.VPNavBarTitle .ba { margin-left: 4px; }
