@@ -7,10 +7,10 @@
 - **Screenshots:** `docs/design-references/yihanglizi-cn-bc4c2f76/root-8a5edab2/live-header-{1440,768,390}.png`
 - **Interaction model:** time-driven auto loop (no click/hover); static when `prefers-reduced-motion: reduce`
 
-## Word mapping (site identity, starlight blog)
+## Word mapping (programmer / agent / AI identity)
 Original cycle: `一行栗子` → `栗子一行` → `李一行` → back.
-Cloned cycle: `栗子一行` (4, accent 栗) → `星河夜航` (4, accent 夜 @ index 2) → `夜航星` (3, accent 星 @ index 2) → back.
-The split char morphs 夜 → 星, and the MID tail 夜航 becomes the SHORT head, so the merge reads as a slide plus a new star.
+Cloned cycle: `极客夜航` (4, accent 极) → `星际智能` (4, accent 智 @ index 2) → `智能体` (3, accent 体 @ index 2) → back.
+The split char morphs 智 → 体, and the MID tail 智能 becomes the SHORT head, so the merge reads as a slide plus the birth of an agent.
 
 ## DOM Structure
 ```
@@ -42,16 +42,16 @@ span.ba-split
 - `.ba-particle`: 2x2 px (sm), radius 50%, background var(--ba-accent), animation particle-fly-sm .6s ease-out forwards
 
 ## Animation Timeline (from live source, exact values)
-1. `initial` — show 栗子一行, hold 2600ms
-2. `shuffle` — scramble all 4 chars for 400ms (random char every 50ms from pool), set 星河夜航, wait 150ms
+1. `initial` — show 极客夜航, hold 2600ms
+2. `shuffle` — scramble all 4 chars for 400ms (random char every 50ms from pool), set 星际智能, wait 150ms
 3. `showSf` — hold 2000ms
 4. `split` — accent slot swaps to split halves; after 80ms add fly-left (sm: .6s) + spawn 6 particles; 700ms total
-5. `merge` — remove split, set 夜航星 (slot 4 opacity 0), 500ms → `showLi` 1800ms
+5. `merge` — remove split, set 智能体 (slot 4 opacity 0), 500ms → `showLi` 1800ms
 6. `bounce` — slots get slot-bounce-sm (.8s, delays 0/.12/.24s), 1000ms
 7. `showLi` — 500ms
-8. `unmerge` — split accent (星) again, add fly-right (sm: .55s) + particles, 700ms
-9. `return` — restore 星河夜航 all 4 slots, 500ms, then hold 1000ms
-10. `unshuffle` — scramble all 400ms, set 栗子一行, 150ms → loop
+8. `unmerge` — split accent (体) again, add fly-right (sm: .55s) + particles, 700ms
+9. `return` — restore 星际智能 all 4 slots, 500ms, then hold 1000ms
+10. `unshuffle` — scramble all 400ms, set 极客夜航, 150ms → loop
 
 Scramble char pool (verbatim): `的一是不了在有人我他这为之来以个们到说时要出会可也对生能子得下大自还后没然看起天开面理心头所经气如样水用十两`
 
@@ -72,4 +72,4 @@ None (text only). Uses already-captured CSS in `src/styles/theme-source.css`; th
 - Mobile 390px: unchanged ba--sm sizes; 3-char phase shrinks row by one 21px slot.
 
 ## Reduced motion
-Show `栗子一行` statically, no loop, no particles.
+Show `极客夜航` statically, no loop, no particles.

@@ -18,9 +18,9 @@ type BrandState =
 
 const slot = (text: string, morph = false, opacity = 1): Slot => ({ text, morph, opacity, scrambling: false, scrambleChar: "" });
 
-const BASE = [slot("栗", true), slot("子"), slot("一"), slot("行")];
-const MID = [slot("星"), slot("河"), slot("夜", true), slot("航")];
-const SHORT = [slot("夜"), slot("航"), slot("星", true), slot("", false, 0)];
+const BASE = [slot("极", true), slot("客"), slot("夜"), slot("航")];
+const MID = [slot("星"), slot("际"), slot("智", true), slot("能")];
+const SHORT = [slot("智"), slot("能"), slot("体", true), slot("", false, 0)];
 
 const reveal = (phrase: Slot[]) => phrase.map(item => ({ ...item }));
 
