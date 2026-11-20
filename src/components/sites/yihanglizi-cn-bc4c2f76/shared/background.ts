@@ -1,3 +1,12 @@
+type Stream = {
+  x: number;
+  offset: number;
+  speed: number;
+  length: number;
+  alpha: number;
+  seed: number;
+};
+
 type Star = {
   x: number;
   y: number;
@@ -21,27 +30,25 @@ type Meteor = {
 const glyphs = "01ABCDEF{}[]<>/;:+-*=XYZ";
 const cellWidth = 18;
 const cellHeight = 20;
-const maxRainColumns = 110;
 
-/**
- * Animate the document backdrop. The cyber code rain is a set of CSS
- * transform animations, so the compositor keeps it falling while the main
- * thread scrolls; only the starry sky is still painted frame by frame.
- */
+/** Animate the document backdrop: code rain in cyber and the source site's starfield in starry. */
 export function enhanceBackground(root: HTMLElement): () => void {
-  const docBg = root.querySelector<HTMLElement>(".doc-bg");
-  const canvas = docBg?.querySelector<HTMLCanvasElement>(".bg-canvas.active") ?? null;
-  const context = canvas?.getContext("2d") ?? null;
+  const canvas = root.querySelector<HTMLCanvasElement>(".doc-bg .bg-canvas.active");
+  const context = canvas?.getContext("2d");
+  if (!canvas || !context) return () => {};
+
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let streams: Stream[] = [];
   let stars: Star[] = [];
   let meteors: Meteor[] = [];
   let width = 0;
   let height = 0;
   let frame = 0;
+  let startedAt = performance.now();
   let lastDraw = 0;
-  let lastMeteorFrame = 0;
-  let rain: HTMLElement | null = null;
-  let rainWidth = 0;
+  let lastMeteorFrame = startedAt;
+  let scrollHoldUntil = 0;
+  let glyphSprites: { head: HTMLCanvasElement[][]; body: HTMLCanvasElement[][] } | null = null;
 
   const makeStars = () => {
     let seed = (0x65a51e7 ^ Math.round(width * 17 + height * 31)) >>> 0;
@@ -62,43 +69,74 @@ export function enhanceBackground(root: HTMLElement): () => void {
     }));
   };
 
-  const buildRain = () => {
-    if (!docBg) return;
-    rain?.remove();
-    const layer = document.createElement("div");
-    layer.className = "cyber-rain";
-    layer.setAttribute("aria-hidden", "true");
-    const count = Math.min(maxRainColumns, Math.ceil(width / cellWidth));
-    const step = width / count;
-    for (let index = 0; index < count; index++) {
-      const column = document.createElement("span");
-      column.className = "rain-col";
-      const length = 22 + Math.floor(Math.random() * 30);
-      const speed = 70 + Math.random() * 50;
-      const duration = height / speed;
-      let text = "";
-      for (let i = 0; i < length - 1; i++) text += glyphs[Math.floor(Math.random() * glyphs.length)];
-      column.textContent = text;
-      const head = document.createElement("span");
-      head.className = "rain-head";
-      head.textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
-      column.append(head);
-      column.style.left = `${((index + .5) * step - 5).toFixed(1)}px`;
-      column.style.setProperty("--dur", `${duration.toFixed(2)}s`);
-      column.style.setProperty("--delay", `${(-Math.random() * duration).toFixed(2)}s`);
-      column.style.setProperty("--fade", `${length * cellHeight}px`);
-      column.style.opacity = (.38 + Math.random() * .3).toFixed(2);
-      layer.append(column);
+  // Glyph alpha is baked into the sprites, so a frame is pure drawImage calls
+  // with no per-glyph canvas state changes.
+  const makeGlyphSprites = (ratio: number) => {
+    const build = (color: string, levels: number) => Array.from({ length: levels }, (_, level) =>
+      Array.from(glyphs, glyph => {
+        const sprite = document.createElement("canvas");
+        sprite.width = Math.ceil(cellWidth * ratio);
+        sprite.height = Math.ceil(cellHeight * ratio);
+        const spriteContext = sprite.getContext("2d");
+        if (spriteContext) {
+          spriteContext.globalAlpha = (level + .5) / levels;
+          spriteContext.font = `${16 * ratio}px Consolas, monospace`;
+          spriteContext.textAlign = "center";
+          spriteContext.fillStyle = color;
+          spriteContext.fillText(glyph, (cellWidth / 2) * ratio, 16 * ratio);
+        }
+        return sprite;
+      }));
+    return { head: build("rgb(255, 207, 112)", 8), body: build("rgb(255, 169, 36)", 10) };
+  };
+
+  const resize = () => {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    glyphSprites = makeGlyphSprites(ratio);
+    streams = Array.from({ length: Math.ceil(width / cellWidth) }, (_, index) => {
+      const length = 20 + Math.floor(Math.random() * 32);
+      return {
+        x: index * cellWidth + Math.random() * 5,
+        offset: Math.random() * height,
+        speed: 72 + Math.random() * 48,
+        length,
+        alpha: .28 + Math.random() * .26,
+        seed: Math.floor(Math.random() * glyphs.length),
+      };
+    });
+    stars = makeStars();
+    meteors = [];
+    render(performance.now());
+  };
+
+  const drawCyber = (time: number) => {
+    // rAF timestamps can predate the performance.now() captured in sync(), which
+    // would make the flicker index negative.
+    const elapsed = reducedMotion.matches ? 0 : Math.max(0, (time - startedAt) / 1000);
+    const flicker = Math.floor(elapsed * 6);
+    const sprites = glyphSprites;
+    if (!sprites) return;
+    for (const stream of streams) {
+      const head = (stream.offset + elapsed * stream.speed) % height;
+      for (let index = 0; index < stream.length; index++) {
+        const y = (head - index * cellHeight + height) % height;
+        const fade = 1 - index / stream.length;
+        const opacity = Math.min(stream.alpha * fade * fade * (index === 0 ? 1.4 : 1), index === 0 ? .65 : 1);
+        if (opacity < .02) continue;
+        const glyph = (stream.seed + index * 7 + flicker) % glyphs.length;
+        const set = index === 0 ? sprites.head : sprites.body;
+        const level = Math.min(set.length - 1, Math.floor(opacity * set.length));
+        context.drawImage(set[level][glyph], stream.x - cellWidth / 2, y - 16, cellWidth, cellHeight);
+      }
     }
-    const overlay = docBg.querySelector(".bg-overlay");
-    if (overlay) docBg.insertBefore(layer, overlay);
-    else docBg.append(layer);
-    rain = layer;
-    rainWidth = width;
   };
 
   const drawStarry = (time: number) => {
-    if (!context) return;
     const sky = context.createRadialGradient(width * .5, height * .3, 0, width * .5, height * .3, Math.max(width, height) * .88);
     sky.addColorStop(0, "#0b0a2e");
     sky.addColorStop(.4, "#0a0e1e");
@@ -193,58 +231,51 @@ export function enhanceBackground(root: HTMLElement): () => void {
     });
   };
 
-  const renderStarry = (time: number) => {
-    if (!context) return;
+  const render = (time: number) => {
     context.clearRect(0, 0, width, height);
-    drawStarry(time);
+    if (document.documentElement.dataset.docTheme === "cyber") drawCyber(time);
+    else if (document.documentElement.dataset.docTheme === "starry") drawStarry(time);
   };
 
   const tick = (time: number) => {
-    if (time - lastDraw >= 33) {
-      renderStarry(time);
+    // While the user scrolls, keep the rain falling at a cheaper cadence
+    // instead of pausing it (a full stop read as a freeze) or running the
+    // full 30fps (the extra fill work made scrolling stutter).
+    const interval = time < scrollHoldUntil ? 45 : 33;
+    if (time - lastDraw >= interval) {
+      render(time);
       lastDraw = time;
     }
     frame = window.requestAnimationFrame(tick);
   };
 
+  const markScrolling = () => { scrollHoldUntil = performance.now() + 180; };
+
   // The home hides its doc-bg under the starry theme, so nothing needs painting there.
-  const docBgHidden = () => !docBg || getComputedStyle(docBg).display === "none";
-  const starryActive = () => document.documentElement.dataset.docTheme === "starry" && !docBgHidden();
+  const docBgHidden = () => !canvas.parentElement || getComputedStyle(canvas.parentElement).display === "none";
 
   const sync = () => {
     window.cancelAnimationFrame(frame);
-    frame = 0;
+    startedAt = performance.now();
     lastDraw = 0;
-    lastMeteorFrame = performance.now();
+    lastMeteorFrame = startedAt;
     meteors = [];
-    if (!context) return;
-    if (starryActive()) renderStarry(lastMeteorFrame);
-    else context.clearRect(0, 0, width, height);
-    if (starryActive() && !reducedMotion.matches && !document.hidden) frame = window.requestAnimationFrame(tick);
-  };
-
-  const resize = () => {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    const ratio = Math.min(window.devicePixelRatio || 1, 2);
-    if (canvas && context) {
-      canvas.width = Math.round(width * ratio);
-      canvas.height = Math.round(height * ratio);
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    render(startedAt);
+    const theme = document.documentElement.dataset.docTheme || "";
+    if (["cyber", "starry"].includes(theme) && !reducedMotion.matches && !document.hidden && !docBgHidden()) {
+      frame = window.requestAnimationFrame(tick);
     }
-    stars = makeStars();
-    meteors = [];
-    if (width !== rainWidth) buildRain();
-    sync();
   };
 
   const resizeObserver = new ResizeObserver(resize);
-  if (canvas) resizeObserver.observe(canvas);
+  resizeObserver.observe(canvas);
   const themeObserver = new MutationObserver(sync);
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-doc-theme"] });
   reducedMotion.addEventListener("change", sync);
   document.addEventListener("visibilitychange", sync);
+  window.addEventListener("scroll", markScrolling, { passive: true });
   resize();
+  sync();
 
   return () => {
     window.cancelAnimationFrame(frame);
@@ -252,8 +283,7 @@ export function enhanceBackground(root: HTMLElement): () => void {
     themeObserver.disconnect();
     reducedMotion.removeEventListener("change", sync);
     document.removeEventListener("visibilitychange", sync);
-    rain?.remove();
-    rain = null;
-    context?.clearRect(0, 0, width, height);
+    window.removeEventListener("scroll", markScrolling);
+    context.clearRect(0, 0, width, height);
   };
 }
