@@ -264,6 +264,16 @@ html[data-doc-theme=starry] .slh-video-layer:after{content:"";position:absolute;
 @media(prefers-reduced-motion:reduce){.cosmic-marker,.cosmic-reticle,.cosmic-status-dot{animation:none!important;transition:none!important}}
 
 /* Empty content states keep the captured layouts ready for future data. */
+.template-brand-name .ba--sm{padding:2px 4px;border-radius:9px}
+.template-brand-name .ba--sm .ba-row{gap:2px}
+.template-brand-name .ba--sm .ba-slot{width:24px;height:29px}
+.template-brand-name .ba--sm .ba-char--normal{font-size:19px}
+.template-brand-name .ba--sm .ba-char--morph{font-size:20px}
+@media (min-width:960px){
+  .template-brand-name .ba--sm .ba-slot{width:28px;height:34px}
+  .template-brand-name .ba--sm .ba-char--normal{font-size:22px}
+  .template-brand-name .ba--sm .ba-char--morph{font-size:23px}
+}
 .template-brand-icon{display:inline-grid;place-items:center;width:36px;height:36px;border:1px solid var(--clone-border,#9a773d);border-radius:10px;color:var(--clone-accent,#ffbd56);font-size:24px;line-height:1;background:var(--clone-surface,#15120d)}
 .template-brand-name{font-size:1.2rem;font-weight:800;letter-spacing:.08em;color:var(--clone-text,#f8ecd5)}
 .VPNavBarTitle .title>.template-brand-icon{display:inline-grid!important}
