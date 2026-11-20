@@ -46,8 +46,7 @@ export function enhanceBackground(root: HTMLElement): () => void {
   let startedAt = performance.now();
   let lastDraw = 0;
   let lastMeteorFrame = startedAt;
-  let scrolling = false;
-  let scrollTimer = 0;
+  let glyphSprites: { head: HTMLCanvasElement[]; body: HTMLCanvasElement[] } | null = null;
 
   const makeStars = () => {
     let seed = (0x65a51e7 ^ Math.round(width * 17 + height * 31)) >>> 0;
@@ -68,6 +67,25 @@ export function enhanceBackground(root: HTMLElement): () => void {
     }));
   };
 
+  // Every glyph is rasterized once per scale; drawImage keeps the rain cheap
+  // enough to keep falling while the page scrolls.
+  const makeGlyphSprites = (ratio: number) => {
+    const make = (color: string) => Array.from(glyphs, glyph => {
+      const sprite = document.createElement("canvas");
+      sprite.width = Math.ceil(cellWidth * ratio);
+      sprite.height = Math.ceil(cellHeight * ratio);
+      const spriteContext = sprite.getContext("2d");
+      if (spriteContext) {
+        spriteContext.font = `${16 * ratio}px Consolas, monospace`;
+        spriteContext.textAlign = "center";
+        spriteContext.fillStyle = color;
+        spriteContext.fillText(glyph, (cellWidth / 2) * ratio, 16 * ratio);
+      }
+      return sprite;
+    });
+    return { head: make("rgb(255, 207, 112)"), body: make("rgb(255, 169, 36)") };
+  };
+
   const resize = () => {
     width = window.innerWidth;
     height = window.innerHeight;
@@ -75,6 +93,7 @@ export function enhanceBackground(root: HTMLElement): () => void {
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    glyphSprites = makeGlyphSprites(ratio);
     streams = Array.from({ length: Math.ceil(width / cellWidth) }, (_, index) => {
       const length = 20 + Math.floor(Math.random() * 32);
       return {
@@ -92,23 +111,25 @@ export function enhanceBackground(root: HTMLElement): () => void {
   };
 
   const drawCyber = (time: number) => {
-    const elapsed = reducedMotion.matches ? 0 : (time - startedAt) / 1000;
+    // rAF timestamps can predate the performance.now() captured in sync(), which
+// would make the flicker index negative.
+  const elapsed = reducedMotion.matches ? 0 : Math.max(0, (time - startedAt) / 1000);
     const flicker = Math.floor(elapsed * 6);
-    context.font = "16px Consolas, monospace";
-    context.textAlign = "center";
-    streams.forEach(stream => {
+    const sprites = glyphSprites;
+    if (!sprites) return;
+    for (const stream of streams) {
       const head = (stream.offset + elapsed * stream.speed) % height;
       for (let index = 0; index < stream.length; index++) {
         const y = (head - index * cellHeight + height) % height;
         const fade = 1 - index / stream.length;
-        const opacity = stream.alpha * fade * fade * (index === 0 ? 1.4 : 1);
-        context.fillStyle = index === 0
-          ? `rgba(255, 207, 112, ${Math.min(opacity, .65)})`
-          : `rgba(255, 169, 36, ${opacity})`;
-        const glyph = glyphs[(stream.seed + index * 7 + flicker) % glyphs.length];
-        context.fillText(glyph, stream.x, y);
+        const opacity = Math.min(stream.alpha * fade * fade * (index === 0 ? 1.4 : 1), index === 0 ? .65 : 1);
+        if (opacity < .02) continue;
+        const glyph = (stream.seed + index * 7 + flicker) % glyphs.length;
+        context.globalAlpha = opacity;
+        context.drawImage(sprites[index === 0 ? "head" : "body"][glyph], stream.x - cellWidth / 2, y - 16, cellWidth, cellHeight);
       }
-    });
+    }
+    context.globalAlpha = 1;
   };
 
   const drawStarry = (time: number) => {
@@ -213,7 +234,7 @@ export function enhanceBackground(root: HTMLElement): () => void {
   };
 
   const tick = (time: number) => {
-    if (!scrolling && time - lastDraw >= 33) {
+    if (time - lastDraw >= 33) {
       render(time);
       lastDraw = time;
     }
@@ -238,15 +259,6 @@ export function enhanceBackground(root: HTMLElement): () => void {
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-doc-theme"] });
   reducedMotion.addEventListener("change", sync);
   document.addEventListener("visibilitychange", sync);
-  const onScroll = () => {
-    scrolling = true;
-    window.clearTimeout(scrollTimer);
-    scrollTimer = window.setTimeout(() => {
-      scrolling = false;
-      lastDraw = 0;
-    }, 110);
-  };
-  window.addEventListener("scroll", onScroll, { passive: true });
   resize();
   sync();
 
@@ -256,8 +268,6 @@ export function enhanceBackground(root: HTMLElement): () => void {
     themeObserver.disconnect();
     reducedMotion.removeEventListener("change", sync);
     document.removeEventListener("visibilitychange", sync);
-    window.removeEventListener("scroll", onScroll);
-    window.clearTimeout(scrollTimer);
     context.clearRect(0, 0, width, height);
   };
 }
