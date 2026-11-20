@@ -28,10 +28,10 @@ type Meteor = {
 };
 
 const glyphs = "01ABCDEF{}[]<>/;:+-*=XYZ";
-const cellWidth = 13;
-const cellHeight = 15;
+const cellWidth = 14;
+const cellHeight = 16;
 const columnStep = 30;
-const fontSize = 13;
+const fontSize = 14;
 
 /** Animate the document backdrop: code rain in cyber and the source site's starfield in starry. */
 export function enhanceBackground(root: HTMLElement): () => void {
@@ -82,7 +82,7 @@ export function enhanceBackground(root: HTMLElement): () => void {
         const spriteContext = sprite.getContext("2d");
         if (spriteContext) {
           spriteContext.globalAlpha = (level + .5) / levels;
-          spriteContext.font = `${fontSize * ratio}px Consolas, monospace`;
+          spriteContext.font = `bold ${fontSize * ratio}px Consolas, monospace`;
           spriteContext.textAlign = "center";
           spriteContext.fillStyle = color;
           spriteContext.fillText(glyph, (cellWidth / 2) * ratio, fontSize * ratio);
