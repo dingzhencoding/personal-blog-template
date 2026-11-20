@@ -28,8 +28,10 @@ type Meteor = {
 };
 
 const glyphs = "01ABCDEF{}[]<>/;:+-*=XYZ";
-const cellWidth = 18;
-const cellHeight = 20;
+const cellWidth = 13;
+const cellHeight = 15;
+const columnStep = 30;
+const fontSize = 13;
 
 /** Animate the document backdrop: code rain in cyber and the source site's starfield in starry. */
 export function enhanceBackground(root: HTMLElement): () => void {
@@ -80,10 +82,10 @@ export function enhanceBackground(root: HTMLElement): () => void {
         const spriteContext = sprite.getContext("2d");
         if (spriteContext) {
           spriteContext.globalAlpha = (level + .5) / levels;
-          spriteContext.font = `${16 * ratio}px Consolas, monospace`;
+          spriteContext.font = `${fontSize * ratio}px Consolas, monospace`;
           spriteContext.textAlign = "center";
           spriteContext.fillStyle = color;
-          spriteContext.fillText(glyph, (cellWidth / 2) * ratio, 16 * ratio);
+          spriteContext.fillText(glyph, (cellWidth / 2) * ratio, fontSize * ratio);
         }
         return sprite;
       }));
@@ -98,12 +100,12 @@ export function enhanceBackground(root: HTMLElement): () => void {
     canvas.height = Math.round(height * ratio);
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     glyphSprites = makeGlyphSprites(ratio);
-    streams = Array.from({ length: Math.ceil(width / cellWidth) }, (_, index) => {
+    streams = Array.from({ length: Math.ceil(width / columnStep) }, (_, index) => {
       const length = 20 + Math.floor(Math.random() * 32);
       return {
-        x: index * cellWidth + Math.random() * 5,
+        x: index * columnStep + Math.random() * 5,
         offset: Math.random() * height,
-        speed: 72 + Math.random() * 48,
+        speed: 100 + Math.random() * 60,
         length,
         alpha: .28 + Math.random() * .26,
         seed: Math.floor(Math.random() * glyphs.length),
@@ -131,7 +133,7 @@ export function enhanceBackground(root: HTMLElement): () => void {
         const glyph = (stream.seed + index * 7 + flicker) % glyphs.length;
         const set = index === 0 ? sprites.head : sprites.body;
         const level = Math.min(set.length - 1, Math.floor(opacity * set.length));
-        context.drawImage(set[level][glyph], stream.x - cellWidth / 2, y - 16, cellWidth, cellHeight);
+        context.drawImage(set[level][glyph], stream.x - cellWidth / 2, y - fontSize, cellWidth, cellHeight);
       }
     }
   };
@@ -241,7 +243,7 @@ export function enhanceBackground(root: HTMLElement): () => void {
     // While the user scrolls, keep the rain falling at a cheaper cadence
     // instead of pausing it (a full stop read as a freeze) or running the
     // full 30fps (the extra fill work made scrolling stutter).
-    const interval = time < scrollHoldUntil ? 45 : 33;
+    const interval = time < scrollHoldUntil ? 50 : 33;
     if (time - lastDraw >= interval) {
       render(time);
       lastDraw = time;
