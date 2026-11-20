@@ -2,12 +2,13 @@
 // theme and the site overrides load here.
 import "@/styles/theme.about.generated.css";
 import "@/app/globals.css";
+import "@/styles/about-page.css";
 import CapturedPage, { capturedPageMetadata } from "@/components/content/CapturedPage";
 
 const path = "/about/";
 const captureKey = "about-4f10f17b";
 
-export const metadata = capturedPageMetadata(captureKey, path, "关于 · 站点主人的自我介绍、技能栈与联系方式。");
+export const metadata = capturedPageMetadata(captureKey, path, "健康注意力表达，代码修身论。");
 
 export default function AboutPage() {
   return <CapturedPage captureKey={captureKey} path={path} />;
