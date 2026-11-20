@@ -105,15 +105,6 @@ html[data-doc-theme=starry] .home-doc-bg{display:none}
 html[data-doc-theme=starry] body{background:#05060e}
 html[data-doc-theme=cyber] .doc-bg{background:radial-gradient(circle at 75% 10%,rgba(255,102,20,.13),transparent 27%),radial-gradient(circle at 12% 22%,rgba(255,196,52,.1),transparent 28%),#080705!important}
 html[data-doc-theme=starry] .doc-bg{background:#05060e!important}
-/* 赛博代码雨：每列是一条纯 CSS transform 动画的字符带，动画在合成线程执行，
-   滚动时主线程不再重绘整屏画布（旧实现每次滚动都会掉帧）。 */
-.doc-bg .cyber-rain{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0;transition:opacity .8s ease-in-out;font:16px/20px Consolas,monospace;color:#ffa924}
-html[data-doc-theme=cyber] .doc-bg .cyber-rain{opacity:1}
-html[data-doc-theme=starry] .doc-bg .cyber-rain{display:none}
-.cyber-rain .rain-col{position:absolute;top:0;width:1ch;text-align:center;white-space:normal;word-break:break-all;will-change:transform;mask-image:linear-gradient(to top,#000 0,#000 1.8em,rgba(0,0,0,.5) calc(1.8em + var(--fade,400px) * .3),rgba(0,0,0,.18) calc(1.8em + var(--fade,400px) * .65),transparent calc(1.8em + var(--fade,400px)));-webkit-mask-image:linear-gradient(to top,#000 0,#000 1.8em,rgba(0,0,0,.5) calc(1.8em + var(--fade,400px) * .3),rgba(0,0,0,.18) calc(1.8em + var(--fade,400px) * .65),transparent calc(1.8em + var(--fade,400px)));animation:cyber-rain-fall var(--dur,10s) linear infinite;animation-delay:var(--delay,0s)}
-.cyber-rain .rain-head{color:#ffcf70;text-shadow:0 0 7px rgba(255,190,90,.7)}
-@keyframes cyber-rain-fall{from{transform:translateY(-100%)}to{transform:translateY(calc(100vh - 100%))}}
-@media (prefers-reduced-motion:reduce){.cyber-rain .rain-col{animation:none;transform:translateY(calc(-100% + 55vh))}}
 html[data-doc-theme] .VPNav{background:color-mix(in srgb,var(--vp-c-bg) 91%,transparent)!important;border-bottom-color:var(--clone-border)!important;backdrop-filter:blur(16px) saturate(135%)}
 html[data-doc-theme] .VPNavBarMenuLink.active,html[data-doc-theme] .VPNavBarMenuGroup.active .button,html[data-doc-theme] .VPNavBarMenuLink:hover{color:var(--clone-accent)!important}
 html[data-doc-theme] .DocSearch-Button{background:color-mix(in srgb,var(--clone-surface) 88%,transparent)!important;border-color:var(--clone-border)!important;color:var(--clone-muted)!important}
